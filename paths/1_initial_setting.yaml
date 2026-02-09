@@ -1,0 +1,276 @@
+# 1.1.1 [SetSimulation]
+/sim/init:
+  post:
+    tags: [Initial Setting]
+    summary: 1.1.1 SetSimulation
+    description: Initialize simulation scope (Vehicles, UATM, VPOs counts)
+    operationId: setSimulation
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/requests.yaml#/SetSimulationRequest'
+    responses:
+      '200':
+        description: Simulation initialized successfully
+
+# 1.1.2 [ExecuteVDT, ExecuteUATM, ExecuteVPOs]
+/sim/executor/vdt:
+  post:
+    tags: [Initial Setting]
+    summary: 1.1.2 ExecuteVDT
+    description: Start VDT Process
+    responses:
+      '200':
+        description: VDT Started
+
+/sim/executor/uatm:
+  post:
+    tags: [Initial Setting]
+    summary: 1.1.2 ExecuteUATM
+    description: Start UATM Process
+    responses:
+      '200':
+        description: UATM Started
+
+/sim/executor/vpos:
+  post:
+    tags: [Initial Setting]
+    summary: 1.1.2 ExecuteVPOs
+    description: Start VPO Process
+    responses:
+      '200':
+        description: VPOs Started
+
+# 1.1.3 [IPUATM, IPVPOs, IPVehicles]
+/config/ip/uatm:
+  post:
+    tags: [Initial Setting]
+    summary: 1.1.3 IPUATM
+    description: Set IP configuration for UATM
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/common.yaml#/IpConfig'
+    responses:
+      '200':
+        description: UATM IP Configured
+
+/config/ip/vpos:
+  post:
+    tags: [Initial Setting]
+    summary: 1.1.3 IPVPOs
+    description: Set IP configuration for VPOs
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/common.yaml#/IpConfig'
+    responses:
+      '200':
+        description: VPOs IP Configured
+
+/config/ip/vehicles:
+  post:
+    tags: [Initial Setting]
+    summary: 1.1.3 IPVehicles
+    description: Set IP configuration for Vehicles
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/common.yaml#/IpConfig'
+    responses:
+      '200':
+        description: Vehicles IP Configured
+
+# 1.1.4 [ModuleAccessIPs]
+/config/ip/access:
+  post:
+    tags: [Initial Setting]
+    summary: 1.1.4 ModuleAccessIPs
+    description: Configure access control/whitelist IPs
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: string
+              example: "192.168.1.10"
+    responses:
+      '200':
+        description: Access IPs configured
+
+# 1.2.1 [SetVehicle, SetCorridor, SetVertiport, SetPassenger]
+/config/vehicle:
+  post:
+    tags: [Initial Setting]
+    summary: 1.2.1 SetVehicle
+    description: Configure Vehicle type parameters
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/vehicle.yaml#/VehicleParams'
+    responses:
+      '200':
+        description: Vehicle params set
+
+/config/corridor:
+  post:
+    tags: [Initial Setting]
+    summary: 1.2.1 SetCorridor
+    description: Configure Air Corridor parameters
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/vertiport.yaml#/CorridorParams'
+    responses:
+      '200':
+        description: Corridor params set
+
+/config/vertiport:
+  post:
+    tags: [Initial Setting]
+    summary: 1.2.1 SetVertiport
+    description: Configure Vertiport layout and stats
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/vertiport.yaml#/VertiportParams'
+    responses:
+      '200':
+        description: Vertiport params set
+
+/config/passenger:
+  post:
+    tags: [Initial Setting]
+    summary: 1.2.1 SetPassenger
+    description: Configure Passenger generation rules
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/vehicle.yaml#/PassengerParams'
+    responses:
+      '200':
+        description: Passenger params set
+
+# 1.2.2 [SpawnVehicle, SpawnUATMCorridor, SpawnVPOs]
+/spawn/vehicle:
+  post:
+    tags: [Initial Setting]
+    summary: 1.2.2 SpawnVehicle
+    description: Trigger spawn of a specific vehicle instance
+    responses:
+      '200':
+        description: Vehicle spawned
+
+/spawn/corridor:
+  post:
+    tags: [Initial Setting]
+    summary: 1.2.2 SpawnUATMCorridor
+    description: Trigger spawn of corridor geometry
+    responses:
+      '200':
+        description: Corridor spawned
+
+/spawn/vpo:
+  post:
+    tags: [Initial Setting]
+    summary: 1.2.2 SpawnVPOs
+    description: Trigger spawn of VPO instances
+    responses:
+      '200':
+        description: VPOs spawned
+
+# 1.2.3 [CreateVertiport, CreateVehicle]
+/create/vertiport:
+  post:
+    tags: [Initial Setting]
+    summary: 1.2.3 CreateVertiport
+    description: Logical creation of Vertiport object
+    responses:
+      '200':
+        description: Vertiport created
+
+/create/vehicle:
+  post:
+    tags: [Initial Setting]
+    summary: 1.2.3 CreateVehicle
+    description: Logical creation of Vehicle object
+    responses:
+      '200':
+        description: Vehicle created
+
+# 1.2.4 [CreateObjects]
+/create/objects:
+  post:
+    tags: [Initial Setting]
+    summary: 1.2.4 CreateObjects
+    description: Batch creation of general simulation objects
+    responses:
+      '200':
+        description: Objects created
+
+# 1.2.5 [SuceesesInitObjects]
+/status/init-success:
+  post:
+    tags: [Initial Setting]
+    summary: 1.2.5 SuceesesInitObjects
+    description: Confirm all objects have been successfully initialized
+    responses:
+      '200':
+        description: Initialization confirmed
+
+# 1.3.1 [SetGust, SetBird]
+/env/gust:
+  post:
+    tags: [Initial Setting]
+    summary: 1.3.1 SetGust
+    description: Set wind and gust parameters
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/environment.yaml#/GustConfig'
+    responses:
+      '200':
+        description: Gust set
+
+/env/bird:
+  post:
+    tags: [Initial Setting]
+    summary: 1.3.1 SetBird
+    description: Set bird strike/density parameters
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/environment.yaml#/BirdConfig'
+    responses:
+      '200':
+        description: Bird params set
+
+# 1.3.2 [SetENVDynamic]
+/env/dynamic:
+  post:
+    tags: [Initial Setting]
+    summary: 1.3.2 SetENVDynamic
+    description: Configure dynamic environment changes
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              weatherChangeInterval:
+                type: integer
+    responses:
+      '200':
+        description: Dynamic env set

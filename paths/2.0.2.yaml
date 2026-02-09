@@ -1,0 +1,13 @@
+# 2.0.2 [ENVSocket]
+/socket/env:
+  get:
+    tags: [Execution]
+    summary: 2.0.2 ENVSocket
+    description: Get connection info for Environment Socket
+    responses:
+      '200':
+        description: Socket info
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/SocketInfo'

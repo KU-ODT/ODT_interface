@@ -1,0 +1,31 @@
+VehicleCountConfig:
+  type: object
+  properties:
+    vehicleId: { type: string, example: "UAV-MODEL-01" }
+    count: { type: integer, example: 10 }
+
+VehicleParams:
+  type: object
+  properties:
+    type: { type: string, enum: ["Rotary", "Fixed"], example: "Rotary" }
+    maxSpeed: { type: number, example: 120.5 }
+    batteryCapacity: { type: number, example: 5000 }
+
+PassengerParams:
+  type: object
+  properties:
+    averageWeight: { type: number, example: 75.0 }
+    spawnRate: { type: number, example: 0.5 }
+
+FlightPlan:
+  type: object
+  properties:
+    flightId: { type: string, example: "FL-101" }
+    waypoints: 
+      type: array
+      items:
+        type: object
+        properties:
+          lat: { type: number }
+          lon: { type: number }
+          alt: { type: number }

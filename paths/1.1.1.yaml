@@ -1,0 +1,16 @@
+# 1.1.1 [SetSimulation]
+/sim/init:
+  post:
+    tags: [Initial Setting]
+    summary: 1.1.1 SetSimulation
+    description: Initialize simulation scope (Vehicles, UATM, VPOs counts)
+    operationId: setSimulation
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/requests.yaml#/SetSimulationRequest'
+    responses:
+      '200':
+        description: Simulation initialized successfully

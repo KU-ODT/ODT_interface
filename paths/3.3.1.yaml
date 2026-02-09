@@ -1,0 +1,9 @@
+# 3.3.1 [SAReplan]
+/plan/sa-replan:
+  post:
+    tags: [Event Propagation]
+    summary: 3.3.1 SAReplan
+    description: Situation Awareness based Replanning
+    responses:
+      '200':
+        description: Replanning triggered

@@ -1,0 +1,9 @@
+# 3.0.1 [ENVSocket]
+/event/socket/env:
+  post:
+    tags: [Event Propagation]
+    summary: 3.0.1 ENVSocket (Event)
+    description: Publish event to Env Socket
+    responses:
+      '200':
+        description: Event published

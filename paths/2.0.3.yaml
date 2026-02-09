@@ -1,0 +1,13 @@
+# 2.0.3 [VehicleSocket]
+/socket/vehicle:
+  get:
+    tags: [Execution]
+    summary: 2.0.3 VehicleSocket
+    description: Get connection info for Vehicle Socket
+    responses:
+      '200':
+        description: Socket info
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/SocketInfo'

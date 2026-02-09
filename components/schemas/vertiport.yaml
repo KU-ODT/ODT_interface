@@ -1,0 +1,27 @@
+VertiportCountConfig:
+  type: object
+  properties:
+    vertiportId: { type: string, example: "VP-GANGNAM" }
+    count: { type: integer, example: 5 }
+
+VertiportParams:
+  type: object
+  properties:
+    pads: { type: integer, example: 4 }
+    location: 
+      type: object
+      properties:
+        lat: { type: number }
+        lon: { type: number }
+
+UatmConfig:
+  type: object
+  properties:
+    uatmId: { type: string, example: "CENTRAL-UATM" }
+
+CorridorParams:
+  type: object
+  properties:
+    width: { type: number, example: 50.0 }
+    minAltitude: { type: number, example: 100 }
+    maxAltitude: { type: number, example: 300 }

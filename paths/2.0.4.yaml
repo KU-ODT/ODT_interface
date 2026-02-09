@@ -1,0 +1,13 @@
+# 2.0.4 [UESensorSocket]
+/socket/ue-sensor:
+  get:
+    tags: [Execution]
+    summary: 2.0.4 UESensorSocket
+    description: Get connection info for UE Sensor Socket
+    responses:
+      '200':
+        description: Socket info
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/SocketInfo'

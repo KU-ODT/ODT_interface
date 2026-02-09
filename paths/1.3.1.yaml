@@ -1,0 +1,28 @@
+# 1.3.1 [SetGust, SetBird]
+/env/gust:
+  post:
+    tags: [Initial Setting]
+    summary: 1.3.1 SetGust
+    description: Set wind and gust parameters
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/environment.yaml#/GustConfig'
+    responses:
+      '200':
+        description: Gust set
+
+/env/bird:
+  post:
+    tags: [Initial Setting]
+    summary: 1.3.1 SetBird
+    description: Set bird strike/density parameters
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/environment.yaml#/BirdConfig'
+    responses:
+      '200':
+        description: Bird params set

@@ -1,0 +1,13 @@
+# 2.0.5 [PySensorSocket]
+/socket/py-sensor:
+  get:
+    tags: [Execution]
+    summary: 2.0.5 PySensorSocket
+    description: Get connection info for Python Sensor Socket
+    responses:
+      '200':
+        description: Socket info
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/SocketInfo'

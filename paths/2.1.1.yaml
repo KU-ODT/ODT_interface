@@ -1,0 +1,9 @@
+# 2.1.1 [StartSimulation]
+/sim/start:
+  post:
+    tags: [Execution]
+    summary: 2.1.1 StartSimulation
+    description: Begin the simulation execution
+    responses:
+      '200':
+        description: Simulation started

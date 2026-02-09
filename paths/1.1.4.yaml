@@ -1,0 +1,17 @@
+# 1.1.4 [ModuleAccessIPs]
+/config/ip/access:
+  post:
+    tags: [Initial Setting]
+    summary: 1.1.4 ModuleAccessIPs
+    description: Configure access control/whitelist IPs
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: string
+              example: "192.168.1.10"
+    responses:
+      '200':
+        description: Access IPs configured

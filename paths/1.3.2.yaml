@@ -1,0 +1,17 @@
+# 1.3.2 [SetENVDynamic]
+/env/dynamic:
+  post:
+    tags: [Initial Setting]
+    summary: 1.3.2 SetENVDynamic
+    description: Configure dynamic environment changes
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              weatherChangeInterval:
+                type: integer
+    responses:
+      '200':
+        description: Dynamic env set

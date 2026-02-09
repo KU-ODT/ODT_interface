@@ -1,0 +1,9 @@
+# 2.1.4 [Desire State]
+/state/desire:
+  post:
+    tags: [Execution]
+    summary: 2.1.4 Desire State
+    description: Set preliminary desired state for entities
+    responses:
+      '200':
+        description: Desire state set

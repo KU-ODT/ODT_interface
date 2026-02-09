@@ -1,0 +1,9 @@
+# 2.1.2 [GenerateFPL]
+/fpl/generate:
+  post:
+    tags: [Execution]
+    summary: 2.1.2 GenerateFPL
+    description: Trigger Flight Plan Level generation
+    responses:
+      '200':
+        description: FPL generation started

@@ -1,0 +1,42 @@
+# 1.1.3 [IPUATM, IPVPOs, IPVehicles]
+/config/ip/uatm:
+  post:
+    tags: [Initial Setting]
+    summary: 1.1.3 IPUATM
+    description: Set IP configuration for UATM
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/common.yaml#/IpConfig'
+    responses:
+      '200':
+        description: UATM IP Configured
+
+/config/ip/vpos:
+  post:
+    tags: [Initial Setting]
+    summary: 1.1.3 IPVPOs
+    description: Set IP configuration for VPOs
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/common.yaml#/IpConfig'
+    responses:
+      '200':
+        description: VPOs IP Configured
+
+/config/ip/vehicles:
+  post:
+    tags: [Initial Setting]
+    summary: 1.1.3 IPVehicles
+    description: Set IP configuration for Vehicles
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/common.yaml#/IpConfig'
+    responses:
+      '200':
+        description: Vehicles IP Configured

@@ -1,0 +1,18 @@
+# 1.2.3 [CreateVertiport, CreateVehicle]
+/create/vertiport:
+  post:
+    tags: [Initial Setting]
+    summary: 1.2.3 CreateVertiport
+    description: Logical creation of Vertiport object
+    responses:
+      '200':
+        description: Vertiport created
+
+/create/vehicle:
+  post:
+    tags: [Initial Setting]
+    summary: 1.2.3 CreateVehicle
+    description: Logical creation of Vehicle object
+    responses:
+      '200':
+        description: Vehicle created

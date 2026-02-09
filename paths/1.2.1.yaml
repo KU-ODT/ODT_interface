@@ -1,0 +1,56 @@
+# 1.2.1 [SetVehicle, SetCorridor, SetVertiport, SetPassenger]
+/config/vehicle:
+  post:
+    tags: [Initial Setting]
+    summary: 1.2.1 SetVehicle
+    description: Configure Vehicle type parameters
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/vehicle.yaml#/VehicleParams'
+    responses:
+      '200':
+        description: Vehicle params set
+
+/config/corridor:
+  post:
+    tags: [Initial Setting]
+    summary: 1.2.1 SetCorridor
+    description: Configure Air Corridor parameters
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/vertiport.yaml#/CorridorParams'
+    responses:
+      '200':
+        description: Corridor params set
+
+/config/vertiport:
+  post:
+    tags: [Initial Setting]
+    summary: 1.2.1 SetVertiport
+    description: Configure Vertiport layout and stats
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/vertiport.yaml#/VertiportParams'
+    responses:
+      '200':
+        description: Vertiport params set
+
+/config/passenger:
+  post:
+    tags: [Initial Setting]
+    summary: 1.2.1 SetPassenger
+    description: Configure Passenger generation rules
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/vehicle.yaml#/PassengerParams'
+    responses:
+      '200':
+        description: Passenger params set

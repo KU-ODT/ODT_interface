@@ -1,0 +1,27 @@
+# 1.2.2 [SpawnVehicle, SpawnUATMCorridor, SpawnVPOs]
+/spawn/vehicle:
+  post:
+    tags: [Initial Setting]
+    summary: 1.2.2 SpawnVehicle
+    description: Trigger spawn of a specific vehicle instance
+    responses:
+      '200':
+        description: Vehicle spawned
+
+/spawn/corridor:
+  post:
+    tags: [Initial Setting]
+    summary: 1.2.2 SpawnUATMCorridor
+    description: Trigger spawn of corridor geometry
+    responses:
+      '200':
+        description: Corridor spawned
+
+/spawn/vpo:
+  post:
+    tags: [Initial Setting]
+    summary: 1.2.2 SpawnVPOs
+    description: Trigger spawn of VPO instances
+    responses:
+      '200':
+        description: VPOs spawned

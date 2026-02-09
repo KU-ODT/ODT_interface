@@ -1,0 +1,114 @@
+# 2.0.1 [MonitoringSocket]
+/socket/monitoring:
+  get:
+    tags: [Execution]
+    summary: 2.0.1 MonitoringSocket
+    description: Get connection info for Monitoring Socket
+    responses:
+      '200':
+        description: Socket info
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/SocketInfo'
+
+# 2.0.2 [ENVSocket]
+/socket/env:
+  get:
+    tags: [Execution]
+    summary: 2.0.2 ENVSocket
+    description: Get connection info for Environment Socket
+    responses:
+      '200':
+        description: Socket info
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/SocketInfo'
+
+# 2.0.3 [VehicleSocket]
+/socket/vehicle:
+  get:
+    tags: [Execution]
+    summary: 2.0.3 VehicleSocket
+    description: Get connection info for Vehicle Socket
+    responses:
+      '200':
+        description: Socket info
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/SocketInfo'
+
+# 2.0.4 [UESensorSocket]
+/socket/ue-sensor:
+  get:
+    tags: [Execution]
+    summary: 2.0.4 UESensorSocket
+    description: Get connection info for UE Sensor Socket
+    responses:
+      '200':
+        description: Socket info
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/SocketInfo'
+
+# 2.0.5 [PySensorSocket]
+/socket/py-sensor:
+  get:
+    tags: [Execution]
+    summary: 2.0.5 PySensorSocket
+    description: Get connection info for Python Sensor Socket
+    responses:
+      '200':
+        description: Socket info
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/SocketInfo'
+
+# 2.1.1 [StartSimulation]
+/sim/start:
+  post:
+    tags: [Execution]
+    summary: 2.1.1 StartSimulation
+    description: Begin the simulation execution
+    responses:
+      '200':
+        description: Simulation started
+
+# 2.1.2 [GenerateFPL]
+/fpl/generate:
+  post:
+    tags: [Execution]
+    summary: 2.1.2 GenerateFPL
+    description: Trigger Flight Plan Level generation
+    responses:
+      '200':
+        description: FPL generation started
+
+# 2.1.3 [SetFPL]
+/fpl/set:
+  post:
+    tags: [Execution]
+    summary: 2.1.3 SetFPL
+    description: Set/Upload generated Flight Plans
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/vehicle.yaml#/FlightPlan'
+    responses:
+      '200':
+        description: FPL set
+
+# 2.1.4 [Desire State]
+/state/desire:
+  post:
+    tags: [Execution]
+    summary: 2.1.4 Desire State
+    description: Set preliminary desired state for entities
+    responses:
+      '200':
+        description: Desire state set

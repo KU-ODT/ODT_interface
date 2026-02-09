@@ -1,0 +1,14 @@
+SetSimulationRequest:
+  type: object
+  required: [vehicles, uatm, vertiports]
+  properties:
+    vehicles:
+      type: array
+      items:
+        $ref: './vehicle.yaml#/VehicleCountConfig'
+    uatm:
+      $ref: './vertiport.yaml#/UatmConfig'
+    vertiports:
+      type: array
+      items:
+        $ref: './vertiport.yaml#/VertiportCountConfig'

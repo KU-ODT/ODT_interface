@@ -1,0 +1,27 @@
+# 1.1.2 [ExecuteVDT, ExecuteUATM, ExecuteVPOs]
+/sim/executor/vdt:
+  post:
+    tags: [Initial Setting]
+    summary: 1.1.2 ExecuteVDT
+    description: Start VDT Process
+    responses:
+      '200':
+        description: VDT Started
+
+/sim/executor/uatm:
+  post:
+    tags: [Initial Setting]
+    summary: 1.1.2 ExecuteUATM
+    description: Start UATM Process
+    responses:
+      '200':
+        description: UATM Started
+
+/sim/executor/vpos:
+  post:
+    tags: [Initial Setting]
+    summary: 1.1.2 ExecuteVPOs
+    description: Start VPO Process
+    responses:
+      '200':
+        description: VPOs Started

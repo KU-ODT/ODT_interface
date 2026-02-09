@@ -1,0 +1,9 @@
+# 3.0.3 [SensorSocket]
+/event/socket/sensor:
+  post:
+    tags: [Event Propagation]
+    summary: 3.0.3 SensorSocket (Event)
+    description: Publish event to Sensor Socket
+    responses:
+      '200':
+        description: Event published
