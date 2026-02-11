@@ -10,7 +10,27 @@
       content:
         application/json:
           schema:
-            $ref: '../components/schemas/requests.yaml#/SetSimulationRequest'
+            type: object
+            required: [vehicles, uatm, vertiports]
+            properties:
+              vehicles:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    vehicleId: { type: string, example: "UAV-MODEL-01" }
+                    count: { type: integer, example: 10 }
+              uatm:
+                type: object
+                properties:
+                  uatmId: { type: string, example: "CENTRAL-UATM" }
+              vertiports:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    vertiportId: { type: string, example: "VP-GANGNAM" }
+                    count: { type: integer, example: 5 }
     responses:
       '200':
         description: Simulation initialized successfully

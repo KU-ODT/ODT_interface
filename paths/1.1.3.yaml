@@ -8,7 +8,12 @@
       content:
         application/json:
           schema:
-            $ref: '../components/schemas/common.yaml#/IpConfig'
+            type: object
+            required: [ip, port]
+            properties:
+              moduleId: { type: string, example: "UATM-01" }
+              ip: { type: string, example: "127.0.0.1" }
+              port: { type: integer, example: 8080 }
     responses:
       '200':
         description: UATM IP Configured
@@ -22,7 +27,12 @@
       content:
         application/json:
           schema:
-            $ref: '../components/schemas/common.yaml#/IpConfig'
+            type: object
+            required: [ip, port]
+            properties:
+              moduleId: { type: string, example: "UATM-01" }
+              ip: { type: string, example: "127.0.0.1" }
+              port: { type: integer, example: 8080 }
     responses:
       '200':
         description: VPOs IP Configured
@@ -36,7 +46,12 @@
       content:
         application/json:
           schema:
-            $ref: '../components/schemas/common.yaml#/IpConfig'
+            type: object
+            required: [ip, port]
+            properties:
+              moduleId: { type: string, example: "UATM-01" }
+              ip: { type: string, example: "127.0.0.1" }
+              port: { type: integer, example: 8080 }
     responses:
       '200':
         description: Vehicles IP Configured
