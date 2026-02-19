@@ -1,9 +1,8 @@
 # 3.1.1 [DynamicEventHandle]
-/event/dynamic-handle:
-  post:
-    tags: [Event Propagation]
-    summary: 3.1.1 DynamicEventHandle
-    description: Handle dynamic events like collisions or weather shifts
-    responses:
-      '200':
-        description: Event handled
+post:
+  tags: [Event Propagation]
+  summary: 3.1.1 DynamicEventHandle
+  description: Handle dynamic events like collisions or weather shifts
+  responses:
+    '200':
+      description: Event handled

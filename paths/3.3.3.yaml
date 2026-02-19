@@ -1,9 +1,8 @@
 # 3.3.3 [DesireState]
-/event/desire-state:
-  post:
-    tags: [Event Propagation]
-    summary: 3.3.3 DesireState (Update)
-    description: Update desired state based on events
-    responses:
-      '200':
-        description: State updated
+post:
+  tags: [Event Propagation]
+  summary: 3.3.3 DesireState (Update)
+  description: Update desired state based on events
+  responses:
+    '200':
+      description: State updated

@@ -1,24 +1,23 @@
 # 2.1.3 [SetFPL]
-/fpl/set:
-  post:
-    tags: [Execution]
-    summary: 2.1.3 SetFPL
-    description: Set/Upload generated Flight Plans
-    requestBody:
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              flightId: { type: string, example: "FL-101" }
-              waypoints: 
-                type: array
-                items:
-                  type: object
-                  properties:
-                    lat: { type: number }
-                    lon: { type: number }
-                    alt: { type: number }
-    responses:
-      '200':
-        description: FPL set
+post:
+  tags: [Execution]
+  summary: 2.1.3 SetFPL
+  description: Set/Upload generated Flight Plans
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            flightId: { type: string, example: "FL-101" }
+            waypoints: 
+              type: array
+              items:
+                type: object
+                properties:
+                  lat: { type: number }
+                  lon: { type: number }
+                  alt: { type: number }
+  responses:
+    '200':
+      description: FPL set

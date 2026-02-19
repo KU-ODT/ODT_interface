@@ -1,0 +1,8 @@
+# 1.2.2 [SpawnUATMCorridor]
+post:
+  tags: [Initial Setting]
+  summary: 1.2.2 SpawnUATMCorridor
+  description: Trigger spawn of corridor geometry
+  responses:
+    '200':
+      description: Corridor spawned

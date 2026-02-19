@@ -1,0 +1,16 @@
+# 1.2.1 [SetPassenger]
+post:
+  tags: [Initial Setting]
+  summary: 1.2.1 SetPassenger
+  description: Configure Passenger generation rules
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            averageWeight: { type: number, example: 75.0 }
+            spawnRate: { type: number, example: 0.5 }
+  responses:
+    '200':
+      description: Passenger params set

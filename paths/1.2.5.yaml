@@ -1,9 +1,8 @@
 # 1.2.5 [SuceesesInitObjects]
-/status/init-success:
-  post:
-    tags: [Initial Setting]
-    summary: 1.2.5 SuceesesInitObjects
-    description: Confirm all objects have been successfully initialized
-    responses:
-      '200':
-        description: Initialization confirmed
+post:
+  tags: [Initial Setting]
+  summary: 1.2.5 SuceesesInitObjects
+  description: Confirm all objects have been successfully initialized
+  responses:
+    '200':
+      description: Initialization confirmed

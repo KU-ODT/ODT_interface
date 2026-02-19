@@ -1,16 +1,15 @@
 # 2.0.1 [MonitoringSocket]
-/socket/monitoring:
-  get:
-    tags: [Execution]
-    summary: 2.0.1 MonitoringSocket
-    description: Get connection info for Monitoring Socket
-    responses:
-      '200':
-        description: Socket info
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                endpoint: { type: string, example: "ws://localhost:9090" }
-                status: { type: string, enum: ["Connected", "Disconnected"], example: "Connected" }
+get:
+  tags: [Execution]
+  summary: 2.0.1 MonitoringSocket
+  description: Get connection info for Monitoring Socket
+  responses:
+    '200':
+      description: Socket info
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              endpoint: { type: string, example: "ws://localhost:9090" }
+              status: { type: string, enum: ["Connected", "Disconnected"], example: "Connected" }

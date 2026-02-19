@@ -1,0 +1,8 @@
+# 1.2.2 [SpawnVPOs]
+post:
+  tags: [Initial Setting]
+  summary: 1.2.2 SpawnVPOs
+  description: Trigger spawn of VPO instances
+  responses:
+    '200':
+      description: VPOs spawned

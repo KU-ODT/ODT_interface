@@ -1,0 +1,17 @@
+# 1.2.1 [SetVehicle]
+post:
+  tags: [Initial Setting]
+  summary: 1.2.1 SetVehicle
+  description: Configure Vehicle type parameters
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            type: { type: string, enum: ["Rotary", "Fixed"], example: "Rotary" }
+            maxSpeed: { type: number, example: 120.5 }
+            batteryCapacity: { type: number, example: 5000 }
+  responses:
+    '200':
+      description: Vehicle params set

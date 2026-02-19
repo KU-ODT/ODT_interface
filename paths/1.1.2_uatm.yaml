@@ -1,0 +1,8 @@
+# 1.1.2 [ExecuteUATM]
+post:
+  tags: [Initial Setting]
+  summary: 1.1.2 ExecuteUATM
+  description: Start UATM Process
+  responses:
+    '200':
+      description: UATM Started

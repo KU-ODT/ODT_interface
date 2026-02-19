@@ -1,0 +1,8 @@
+# 1.2.3 [CreateVertiport]
+post:
+  tags: [Initial Setting]
+  summary: 1.2.3 CreateVertiport
+  description: Logical creation of Vertiport object
+  responses:
+    '200':
+      description: Vertiport created

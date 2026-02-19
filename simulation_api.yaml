@@ -16,92 +16,92 @@ paths:
   # 1. Simulation Initial Setting
   # ==========================================
   /sim/init:
-    $ref: './paths/1.1.1.yaml#/sim/init'
+    $ref: './paths/1.1.1.yaml'
   /sim/executor/vdt:
-    $ref: './paths/1.1.2.yaml#/sim/executor/vdt'
+    $ref: './paths/1.1.2_vdt.yaml'
   /sim/executor/uatm:
-    $ref: './paths/1.1.2.yaml#/sim/executor/uatm'
+    $ref: './paths/1.1.2_uatm.yaml'
   /sim/executor/vpos:
-    $ref: './paths/1.1.2.yaml#/sim/executor/vpos'
+    $ref: './paths/1.1.2_vpos.yaml'
   /config/ip/uatm:
-    $ref: './paths/1.1.3.yaml#/config/ip/uatm'
+    $ref: './paths/1.1.3_uatm.yaml'
   /config/ip/vpos:
-    $ref: './paths/1.1.3.yaml#/config/ip/vpos'
+    $ref: './paths/1.1.3_vpos.yaml'
   /config/ip/vehicles:
-    $ref: './paths/1.1.3.yaml#/config/ip/vehicles'
+    $ref: './paths/1.1.3_vehicles.yaml'
   /config/ip/access:
-    $ref: './paths/1.1.4.yaml#/config/ip/access'
+    $ref: './paths/1.1.4.yaml'
   /config/vehicle:
-    $ref: './paths/1.2.1.yaml#/config/vehicle'
+    $ref: './paths/1.2.1_vehicle.yaml'
   /config/corridor:
-    $ref: './paths/1.2.1.yaml#/config/corridor'
+    $ref: './paths/1.2.1_corridor.yaml'
   /config/vertiport:
-    $ref: './paths/1.2.1.yaml#/config/vertiport'
+    $ref: './paths/1.2.1_vertiport.yaml'
   /config/passenger:
-    $ref: './paths/1.2.1.yaml#/config/passenger'
+    $ref: './paths/1.2.1_passenger.yaml'
   /spawn/vehicle:
-    $ref: './paths/1.2.2.yaml#/spawn/vehicle'
+    $ref: './paths/1.2.2_vehicle.yaml'
   /spawn/corridor:
-    $ref: './paths/1.2.2.yaml#/spawn/corridor'
+    $ref: './paths/1.2.2_corridor.yaml'
   /spawn/vpo:
-    $ref: './paths/1.2.2.yaml#/spawn/vpo'
+    $ref: './paths/1.2.2_vpo.yaml'
   /create/vertiport:
-    $ref: './paths/1.2.3.yaml#/create/vertiport'
+    $ref: './paths/1.2.3_vertiport.yaml'
   /create/vehicle:
-    $ref: './paths/1.2.3.yaml#/create/vehicle'
+    $ref: './paths/1.2.3_vehicle.yaml'
   /create/objects:
-    $ref: './paths/1.2.4.yaml#/create/objects'
+    $ref: './paths/1.2.4.yaml'
   /status/init-success:
-    $ref: './paths/1.2.5.yaml#/status/init-success'
+    $ref: './paths/1.2.5.yaml'
   /env/gust:
-    $ref: './paths/1.3.1.yaml#/env/gust'
+    $ref: './paths/1.3.1_gust.yaml'
   /env/bird:
-    $ref: './paths/1.3.1.yaml#/env/bird'
+    $ref: './paths/1.3.1_bird.yaml'
   /env/dynamic:
-    $ref: './paths/1.3.2.yaml#/env/dynamic'
+    $ref: './paths/1.3.2.yaml'
 
   # ==========================================
   # 2. Execution
   # ==========================================
   /socket/monitoring:
-    $ref: './paths/2.0.1.yaml#/socket/monitoring'
+    $ref: './paths/2.0.1.yaml'
   /socket/env:
-    $ref: './paths/2.0.2.yaml#/socket/env'
+    $ref: './paths/2.0.2.yaml'
   /socket/vehicle:
-    $ref: './paths/2.0.3.yaml#/socket/vehicle'
+    $ref: './paths/2.0.3.yaml'
   /socket/ue-sensor:
-    $ref: './paths/2.0.4.yaml#/socket/ue-sensor'
+    $ref: './paths/2.0.4.yaml'
   /socket/py-sensor:
-    $ref: './paths/2.0.5.yaml#/socket/py-sensor'
+    $ref: './paths/2.0.5.yaml'
   /sim/start:
-    $ref: './paths/2.1.1.yaml#/sim/start'
+    $ref: './paths/2.1.1.yaml'
   /fpl/generate:
-    $ref: './paths/2.1.2.yaml#/fpl/generate'
+    $ref: './paths/2.1.2.yaml'
   /fpl/set:
-    $ref: './paths/2.1.3.yaml#/fpl/set'
+    $ref: './paths/2.1.3.yaml'
   /state/desire:
-    $ref: './paths/2.1.4.yaml#/state/desire'
+    $ref: './paths/2.1.4.yaml'
 
   # ==========================================
   # 3. Event Propagation
   # ==========================================
   /event/socket/env:
-    $ref: './paths/3.0.1.yaml#/event/socket/env'
+    $ref: './paths/3.0.1.yaml'
   /event/socket/monitoring:
-    $ref: './paths/3.0.2.yaml#/event/socket/monitoring'
+    $ref: './paths/3.0.2.yaml'
   /event/socket/sensor:
-    $ref: './paths/3.0.3.yaml#/event/socket/sensor'
+    $ref: './paths/3.0.3.yaml'
   /event/dynamic-handle:
-    $ref: './paths/3.1.1.yaml#/event/dynamic-handle'
+    $ref: './paths/3.1.1.yaml'
   /status/vertiport:
-    $ref: './paths/3.2.1.yaml#/status/vertiport'
+    $ref: './paths/3.2.1.yaml'
   /plan/global:
-    $ref: './paths/3.2.2.yaml#/plan/global'
+    $ref: './paths/3.2.2.yaml'
   /state/current/desire:
-    $ref: './paths/3.2.3.yaml#/state/current/desire'
+    $ref: './paths/3.2.3.yaml'
   /plan/sa-replan:
-    $ref: './paths/3.3.1.yaml#/plan/sa-replan'
+    $ref: './paths/3.3.1.yaml'
   /plan/confirm:
-    $ref: './paths/3.3.2.yaml#/plan/confirm'
+    $ref: './paths/3.3.2.yaml'
   /event/desire-state:
-    $ref: './paths/3.3.3.yaml#/event/desire-state'
+    $ref: './paths/3.3.3.yaml'

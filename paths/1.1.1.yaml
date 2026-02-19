@@ -1,36 +1,35 @@
 # 1.1.1 [SetSimulation]
-/sim/init:
-  post:
-    tags: [Initial Setting]
-    summary: 1.1.1 SetSimulation
-    description: Initialize simulation scope (Vehicles, UATM, VPOs counts)
-    operationId: setSimulation
-    requestBody:
-      required: true
-      content:
-        application/json:
-          schema:
-            type: object
-            required: [vehicles, uatm, vertiports]
-            properties:
-              vehicles:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    vehicleId: { type: string, example: "UAV-MODEL-01" }
-                    count: { type: integer, example: 10 }
-              uatm:
+post:
+  tags: [Initial Setting]
+  summary: 1.1.1 SetSimulation
+  description: Initialize simulation scope (Vehicles, UATM, VPOs counts)
+  operationId: setSimulation
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required: [vehicles, uatm, vertiports]
+          properties:
+            vehicles:
+              type: array
+              items:
                 type: object
                 properties:
-                  uatmId: { type: string, example: "CENTRAL-UATM" }
-              vertiports:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    vertiportId: { type: string, example: "VP-GANGNAM" }
-                    count: { type: integer, example: 5 }
-    responses:
-      '200':
-        description: Simulation initialized successfully
+                  vehicleId: { type: string, example: "UAV-MODEL-01" }
+                  count: { type: integer, example: 10 }
+            uatm:
+              type: object
+              properties:
+                uatmId: { type: string, example: "CENTRAL-UATM" }
+            vertiports:
+              type: array
+              items:
+                type: object
+                properties:
+                  vertiportId: { type: string, example: "VP-GANGNAM" }
+                  count: { type: integer, example: 5 }
+  responses:
+    '200':
+      description: Simulation initialized successfully

@@ -18,7 +18,7 @@
       // 이제 데이터를 직접 입력하지 않고 외부 YAML 파일을 불러옵니다.
       const ui = SwaggerUIBundle({
         // 같은 폴더에 있는 simulation_api.yaml 파일을 불러옵니다.
-        url: "./simulation_api.yaml", 
+        url: "./simulation_api.yaml?v=" + new Date().getTime(), 
         dom_id: '#swagger-ui',
         deepLinking: true,
         presets: [

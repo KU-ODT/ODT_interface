@@ -1,16 +1,15 @@
 # 3.2.1 [VPStatus]
-/status/vertiport:
-  get:
-    tags: [Event Propagation]
-    summary: 3.2.1 VPStatus
-    description: Get real-time status of Vertiports
-    responses:
-      '200':
-        description: Vertiport status
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                id: { type: string }
-                state: { type: string, example: "BUSY" }
+get:
+  tags: [Event Propagation]
+  summary: 3.2.1 VPStatus
+  description: Get real-time status of Vertiports
+  responses:
+    '200':
+      description: Vertiport status
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id: { type: string }
+              state: { type: string, example: "BUSY" }

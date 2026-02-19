@@ -1,0 +1,8 @@
+# 1.2.2 [SpawnVehicle]
+post:
+  tags: [Initial Setting]
+  summary: 1.2.2 SpawnVehicle
+  description: Trigger spawn of a specific vehicle instance
+  responses:
+    '200':
+      description: Vehicle spawned

@@ -1,0 +1,20 @@
+# 1.2.1 [SetVertiport]
+post:
+  tags: [Initial Setting]
+  summary: 1.2.1 SetVertiport
+  description: Configure Vertiport layout and stats
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            pads: { type: integer, example: 4 }
+            location: 
+              type: object
+              properties:
+                lat: { type: number }
+                lon: { type: number }
+  responses:
+    '200':
+      description: Vertiport params set

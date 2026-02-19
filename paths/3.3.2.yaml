@@ -1,9 +1,8 @@
 # 3.3.2 [GPPConfirm]
-/plan/confirm:
-  post:
-    tags: [Event Propagation]
-    summary: 3.3.2 GPPConfirm
-    description: Confirm Global Path Plan
-    responses:
-      '200':
-        description: Plan confirmed
+post:
+  tags: [Event Propagation]
+  summary: 3.3.2 GPPConfirm
+  description: Confirm Global Path Plan
+  responses:
+    '200':
+      description: Plan confirmed

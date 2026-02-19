@@ -1,0 +1,8 @@
+# 1.1.2 [ExecuteVDT]
+post:
+  tags: [Initial Setting]
+  summary: 1.1.2 ExecuteVDT
+  description: Start VDT Process
+  responses:
+    '200':
+      description: VDT Started

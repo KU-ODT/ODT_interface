@@ -1,0 +1,8 @@
+# 1.1.2 [ExecuteVPOs]
+post:
+  tags: [Initial Setting]
+  summary: 1.1.2 ExecuteVPOs
+  description: Start VPO Process
+  responses:
+    '200':
+      description: VPOs Started

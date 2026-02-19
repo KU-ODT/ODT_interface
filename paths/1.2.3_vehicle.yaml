@@ -1,0 +1,8 @@
+# 1.2.3 [CreateVehicle]
+post:
+  tags: [Initial Setting]
+  summary: 1.2.3 CreateVehicle
+  description: Logical creation of Vehicle object
+  responses:
+    '200':
+      description: Vehicle created
