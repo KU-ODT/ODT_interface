@@ -1,0 +1,99 @@
+# Phase 6 / Step 2: AI Replan Request
+# From: MissionManagement.Replanning → To: AILibrary
+post:
+  tags: [Phase 6 Replanning]
+  summary: "P6.2 AI Replan Request"
+  description: |
+    AI 라이브러리에 경로 재계획을 요청합니다.
+    - **From**: MissionManagement.Replanning
+    - **To**: AILibrary
+    - **Type**: action
+  operationId: aiReplanRequest
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required: [modelId, currentMission, threatData]
+          properties:
+            modelId:
+              type: string
+              example: "ca-model-v3"
+            currentMission:
+              type: object
+              description: "현재 임무 정보 (v1)"
+              properties:
+                missionId:
+                  type: string
+                  format: uuid
+                version:
+                  type: integer
+                  example: 1
+                waypoints:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      lat: { type: number }
+                      lon: { type: number }
+                      alt: { type: number }
+            threatData:
+              type: object
+              description: "위협 데이터"
+              properties:
+                threatType:
+                  type: string
+                  enum: [collision_risk, weather_change, obstacle_detected]
+                location:
+                  type: object
+                  properties:
+                    lat: { type: number }
+                    lon: { type: number }
+                    alt: { type: number }
+                severity:
+                  type: string
+                  enum: [warning, critical]
+            constraints:
+              type: object
+              description: "재계획 제약 조건"
+            optimizeFor:
+              type: string
+              enum: [safety, time, fuel]
+              example: "safety"
+  responses:
+    '200':
+      description: AI 재계획 완료
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              replannedMission:
+                type: object
+                description: "재계획된 임무 (v2)"
+                properties:
+                  version:
+                    type: integer
+                    example: 2
+                  waypoints:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        lat: { type: number }
+                        lon: { type: number }
+                        alt: { type: number }
+                        speed: { type: number }
+              confidence:
+                type: number
+                minimum: 0
+                maximum: 1
+                example: 0.92
+              deltaFromOriginal:
+                type: object
+                description: "원본 대비 변경 사항"
+                properties:
+                  addedWaypoints: { type: integer }
+                  removedWaypoints: { type: integer }
+                  routeDeviationKm: { type: number }

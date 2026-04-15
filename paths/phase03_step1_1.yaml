@@ -1,0 +1,66 @@
+# Phase 3 / Step 1-1: AI Prediction (optional)
+# From: MissionManagement.MissionPlanning → To: AILibrary
+post:
+  tags: [Phase 3 Mission Planning]
+  summary: "P3.1-1 AI Prediction (Optional)"
+  description: |
+    AI 라이브러리를 활용한 경로 예측을 수행합니다. (선택적)
+    - **From**: MissionManagement.MissionPlanning
+    - **To**: AILibrary
+    - **Type**: action
+  operationId: aiPrediction
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required: [modelId, currentState]
+          properties:
+            modelId:
+              type: string
+              example: "pp-model-v2"
+            currentState:
+              type: object
+              description: "현재 상태 정보"
+              properties:
+                vehicleId:
+                  type: string
+                position:
+                  type: object
+                  properties:
+                    lat: { type: number }
+                    lon: { type: number }
+                    alt: { type: number }
+                velocity:
+                  type: object
+                  properties:
+                    vx: { type: number }
+                    vy: { type: number }
+                    vz: { type: number }
+            constraints:
+              type: object
+              description: "제약 조건"
+  responses:
+    '200':
+      description: AI 예측 완료
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              predictedPath:
+                type: array
+                description: "예측된 웨이포인트 배열"
+                items:
+                  type: object
+                  properties:
+                    lat: { type: number, example: 37.5665 }
+                    lon: { type: number, example: 126.9780 }
+                    alt: { type: number, example: 150 }
+              confidence:
+                type: number
+                minimum: 0
+                maximum: 1
+                example: 0.87
+                description: "예측 신뢰도 (0~1)"

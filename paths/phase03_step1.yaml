@@ -1,0 +1,68 @@
+# Phase 3 / Step 1: Run Initial Mission Planning
+# From: MainGUI.MissionDefine → To: MissionManagement.MissionPlanning
+post:
+  tags: [Phase 3 Mission Planning]
+  summary: "P3.1 Run Initial Mission Planning"
+  description: |
+    [실행] 클릭 시 초기 임무 계획을 수립합니다.
+    - **From**: MainGUI.MissionDefine
+    - **To**: MissionManagement.MissionPlanning
+    - **Type**: action
+  operationId: runInitialMissionPlanning
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required: [sessionId, scenarioId, missionType]
+          properties:
+            sessionId:
+              type: string
+              format: uuid
+              example: "sess-11223344-5566-7788-99aa-bbccddeeff00"
+            scenarioId:
+              type: string
+              format: uuid
+              example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+            missionType:
+              type: string
+              example: "delivery"
+            constraints:
+              type: object
+              description: "임무 제약 조건"
+              properties:
+                maxAltitude:
+                  type: number
+                  example: 500
+                noFlyZones:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      lat: { type: number }
+                      lon: { type: number }
+                      radius: { type: number }
+                timeWindow:
+                  type: object
+                  properties:
+                    start: { type: string, format: date-time }
+                    end: { type: string, format: date-time }
+  responses:
+    '200':
+      description: 임무 계획 수립 완료
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              missionId:
+                type: string
+                format: uuid
+              version:
+                type: integer
+                example: 1
+              status:
+                type: string
+                enum: [planned]
+                example: "planned"

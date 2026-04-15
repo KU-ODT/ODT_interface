@@ -1,0 +1,67 @@
+# Phase 6 / Step 3: Replanned Mission (v2) → State Server
+# From: MissionManagement.Replanning → To: SimulationStateServer.ObjectStateControl
+put:
+  tags: [Phase 6 Replanning]
+  summary: "P6.3 Register Replanned Mission (v2)"
+  description: |
+    재계획된 임무(v2)를 State Server에 반영합니다.
+    - **From**: MissionManagement.Replanning
+    - **To**: SimulationStateServer.ObjectStateControl
+    - **Type**: action
+  operationId: registerReplannedMission
+  parameters:
+    - name: missionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required: [missionId, version, waypoints, changeReason, previousVersion]
+          properties:
+            missionId:
+              type: string
+              format: uuid
+            version:
+              type: integer
+              example: 2
+            waypoints:
+              type: array
+              description: "수정된 경로"
+              items:
+                type: object
+                properties:
+                  lat: { type: number, example: 37.5700 }
+                  lon: { type: number, example: 126.9820 }
+                  alt: { type: number, example: 250 }
+                  speed: { type: number, example: 55.0 }
+                  action: { type: string }
+            changeReason:
+              type: string
+              example: "collision_risk detected at WP-3"
+            previousVersion:
+              type: integer
+              example: 1
+  responses:
+    '200':
+      description: 재계획 임무 등록 완료
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                enum: [registered]
+                example: "registered"
+              missionId:
+                type: string
+                format: uuid
+              version:
+                type: integer
+                example: 2

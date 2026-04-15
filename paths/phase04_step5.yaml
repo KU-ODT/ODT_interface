@@ -1,0 +1,44 @@
+# Phase 4 / Step 5: Start Mission (Vehicle)
+# From: SimulationStateServer.ObjectStateControl → To: AirMobilityModule.MissionExecution
+post:
+  tags: [Phase 4 Simulation Runtime]
+  summary: "P4.5 Start Vehicle Mission"
+  description: |
+    Vehicle에 임무 시작 명령을 전달합니다.
+    - **From**: SimulationStateServer.ObjectStateControl
+    - **To**: AirMobilityModule.MissionExecution
+    - **Type**: action
+  operationId: startVehicleMission
+  parameters:
+    - name: vehicleId
+      in: path
+      required: true
+      schema:
+        type: string
+        example: "UAV-001"
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            sessionId:
+              type: string
+              format: uuid
+            missionId:
+              type: string
+              format: uuid
+  responses:
+    '200':
+      description: Vehicle 임무 시작됨
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              vehicleId:
+                type: string
+              status:
+                type: string
+                enum: [executing]
+                example: "executing"

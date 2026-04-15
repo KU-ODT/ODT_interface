@@ -1,0 +1,44 @@
+# Phase 2 / Step 2: Launch 3D Environment
+# From: DTAMCore.SessionConnectionManager → To: 3DEnvironment
+# Response (2-R): 3DEnvironment → DTAMCore.SessionConnectionManager
+post:
+  tags: [Phase 2 Initialization]
+  summary: "P2.2 Launch 3D Environment"
+  description: |
+    3D 환경 렌더링 모듈을 기동합니다.
+    - **From**: DTAMCore.SessionConnectionManager
+    - **To**: 3DEnvironment
+    - **Type**: action
+    - **Response (2-R)**: Endpoint IP 반환
+  operationId: launch3DEnvironment
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            sessionId:
+              type: string
+              format: uuid
+            scenarioId:
+              type: string
+              format: uuid
+  responses:
+    '200':
+      description: 3D Environment 기동 완료
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              moduleId:
+                type: string
+                example: "3d-env-001"
+              endpointIP:
+                type: string
+                description: "ip:port 형식"
+                example: "192.168.1.100:8081"
+              status:
+                type: string
+                enum: [ready]
+                example: "ready"

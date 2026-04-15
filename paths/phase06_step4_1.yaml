@@ -1,0 +1,50 @@
+# Phase 6 / Step 4-1: Log Update
+# From: SimulationStateServer.ObjectStateControl → To: HighFidelityDatabase.MissionLogDB
+post:
+  tags: [Phase 6 Replanning]
+  summary: "P6.4-1 Mission Log Update"
+  description: |
+    임무 버전 변경 이력을 로그 DB에 기록합니다.
+    - **From**: SimulationStateServer.ObjectStateControl
+    - **To**: HighFidelityDatabase.MissionLogDB
+    - **Type**: action
+  operationId: logMissionUpdate
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required: [missionId, fromVersion, toVersion, changeReason, timestamp]
+          properties:
+            missionId:
+              type: string
+              format: uuid
+            fromVersion:
+              type: integer
+              example: 1
+            toVersion:
+              type: integer
+              example: 2
+            changeReason:
+              type: string
+              example: "collision_risk detected at WP-3"
+            timestamp:
+              type: string
+              format: date-time
+              example: "2026-04-15T09:15:30Z"
+  responses:
+    '201':
+      description: 임무 변경 로그 기록 완료
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                enum: [logged]
+                example: "logged"
+              logId:
+                type: string
+                format: uuid

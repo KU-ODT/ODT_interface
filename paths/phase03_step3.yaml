@@ -1,0 +1,72 @@
+# Phase 3 / Step 3: Deploy Mission to Vehicle
+# From: SimulationStateServer.ObjectStateControl → To: AirMobilityModule.MissionExecution
+# Response (3-R): AirMobilityModule.MissionExecution → SimulationStateServer.ObjectStateControl
+post:
+  tags: [Phase 3 Mission Planning]
+  summary: "P3.3 Deploy Mission to Vehicle"
+  description: |
+    등록된 임무를 Vehicle에 배포합니다.
+    - **From**: SimulationStateServer.ObjectStateControl
+    - **To**: AirMobilityModule.MissionExecution
+    - **Type**: action
+    - **Protocol**: HTTP POST / gRPC
+    - **Response (3-R)**: Mission Loaded 확인
+  operationId: deployMissionToVehicle
+  parameters:
+    - name: vehicleId
+      in: path
+      required: true
+      schema:
+        type: string
+        example: "UAV-001"
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required: [missionId, version, waypoints]
+          properties:
+            missionId:
+              type: string
+              format: uuid
+            version:
+              type: integer
+              example: 1
+            waypoints:
+              type: array
+              items:
+                type: object
+                properties:
+                  lat: { type: number }
+                  lon: { type: number }
+                  alt: { type: number }
+                  speed: { type: number }
+                  action: { type: string }
+            startCondition:
+              type: object
+              description: "임무 시작 조건"
+              properties:
+                triggerType:
+                  type: string
+                  enum: [immediate, time_based, event_based]
+                triggerValue:
+                  type: string
+  responses:
+    '200':
+      description: Mission Vehicle에 로드 완료
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              vehicleId:
+                type: string
+                example: "UAV-001"
+              missionId:
+                type: string
+                format: uuid
+              status:
+                type: string
+                enum: [loaded]
+                example: "loaded"

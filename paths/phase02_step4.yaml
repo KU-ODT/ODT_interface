@@ -1,0 +1,46 @@
+# Phase 2 / Step 4: Launch Vehicles
+# From: DTAMCore.SessionConnectionManager → To: AirMobilityModule.MissionExecution
+# Response (4-R): AirMobilityModule → DTAMCore.SessionConnectionManager
+post:
+  tags: [Phase 2 Initialization]
+  summary: "P2.4 Launch Vehicles"
+  description: |
+    항공 모빌리티 모듈(비행체)을 기동합니다.
+    - **From**: DTAMCore.SessionConnectionManager
+    - **To**: AirMobilityModule.MissionExecution
+    - **Type**: action
+    - **Response (4-R)**: Endpoint IP 및 Vehicle ID 목록 반환
+  operationId: launchVehicles
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            sessionId:
+              type: string
+              format: uuid
+            scenarioId:
+              type: string
+              format: uuid
+  responses:
+    '200':
+      description: Vehicle 모듈 기동 완료
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              endpointIP:
+                type: string
+                description: "ip:port 형식"
+                example: "192.168.1.101:8082"
+              vehicleIds:
+                type: array
+                items:
+                  type: string
+                example: ["UAV-001", "UAV-002", "UAV-003"]
+              status:
+                type: string
+                enum: [ready]
+                example: "ready"

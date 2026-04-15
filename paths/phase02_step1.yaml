@@ -1,0 +1,44 @@
+# Phase 2 / Step 1: DTAM Execution (Session Creation)
+# From: MainGUI.SWConfiguration → To: DTAMCore.SessionConnectionManager
+# Response (1-R): DTAMCore.SessionConnectionManager → MainGUI.SWConfiguration
+post:
+  tags: [Phase 2 Initialization]
+  summary: "P2.1 DTAM Execution - Session Creation"
+  description: |
+    [세팅] 클릭 시 세션 생성을 요청합니다.
+    - **From**: MainGUI.SWConfiguration
+    - **To**: DTAMCore.SessionConnectionManager
+    - **Type**: action
+    - **Response (1-R)**: Session ID 반환
+  operationId: createSession
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required: [scenarioId, userId]
+          properties:
+            scenarioId:
+              type: string
+              format: uuid
+              example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+            userId:
+              type: string
+              example: "operator-001"
+  responses:
+    '201':
+      description: 세션 생성 완료
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              sessionId:
+                type: string
+                format: uuid
+                example: "sess-11223344-5566-7788-99aa-bbccddeeff00"
+              status:
+                type: string
+                enum: [created]
+                example: "created"

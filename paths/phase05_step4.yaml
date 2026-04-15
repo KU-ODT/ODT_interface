@@ -1,0 +1,65 @@
+# Phase 5 / Step 4: Event Log
+# From: SimulationStateServer.EventHandler → To: HighFidelityDatabase.MissionLogDB
+post:
+  tags: [Phase 5 Monitoring and Events]
+  summary: "P5.4 Event Log"
+  description: |
+    이벤트 로그를 고충실도 데이터베이스에 기록합니다.
+    - **From**: SimulationStateServer.EventHandler
+    - **To**: HighFidelityDatabase.MissionLogDB
+    - **Type**: action
+  operationId: logEvent
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required: [events]
+          properties:
+            sessionId:
+              type: string
+              format: uuid
+            events:
+              type: array
+              items:
+                type: object
+                required: [eventType, severity]
+                properties:
+                  eventId:
+                    type: string
+                    format: uuid
+                  eventType:
+                    type: string
+                    enum: [collision, weather_change, sensor_anomaly, obstacle]
+                    example: "weather_change"
+                  severity:
+                    type: string
+                    enum: [info, warning, critical]
+                    example: "warning"
+                  timestamp:
+                    type: string
+                    format: date-time
+                  affectedEntities:
+                    type: array
+                    items:
+                      type: string
+                    example: ["UAV-001", "UAV-002"]
+                  details:
+                    type: object
+                    description: "이벤트 상세 정보"
+  responses:
+    '201':
+      description: 이벤트 로그 기록 완료
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                enum: [logged]
+                example: "logged"
+              loggedCount:
+                type: integer
+                example: 1

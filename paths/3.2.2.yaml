@@ -1,8 +1,0 @@
-# 3.2.2 [GlobalPathPlan]
-post:
-  tags: [Event Propagation]
-  summary: 3.2.2 GlobalPathPlan
-  description: Request or update Global Path Plan
-  responses:
-    '200':
-      description: GPP Updated

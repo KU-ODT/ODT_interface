@@ -1,0 +1,80 @@
+# Phase 0-1 / Step 2: Scenario Spec
+# From: MainGUI.SWConfiguration → To: DTAMCore.SessionConnectionManager
+# Response (2-R): DTAMCore.ScenarioParser → MainGUI.SWConfiguration
+post:
+  tags: [Phase 0-1 Scenario Setup]
+  summary: "P0-1.2 Scenario Spec"
+  description: |
+    시나리오 스펙을 DTAM Core에 전달합니다.
+    - **From**: MainGUI.SWConfiguration
+    - **To**: DTAMCore.SessionConnectionManager
+    - **Type**: action
+    - **Response (2-R)**: DTAMCore.ScenarioParser → MainGUI.SWConfiguration (파싱 결과)
+  operationId: submitScenarioSpec
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required: [scenarioName, missionMode, vehicleType, environment]
+          properties:
+            scenarioName:
+              type: string
+              example: "Seoul_Delivery_Mission_01"
+            missionMode:
+              type: string
+              enum: [surveillance, delivery, inspection]
+              example: "delivery"
+            vehicleType:
+              type: string
+              example: "eVTOL-X1"
+            environment:
+              type: object
+              required: [weather, terrain, timeOfDay]
+              properties:
+                weather:
+                  type: string
+                  example: "clear"
+                terrain:
+                  type: string
+                  example: "urban"
+                timeOfDay:
+                  type: string
+                  example: "day"
+  responses:
+    '200':
+      description: 시나리오 파싱 성공
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                enum: [parsed_ok, parse_error]
+                example: "parsed_ok"
+              scenarioId:
+                type: string
+                format: uuid
+                example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+              errors:
+                type: array
+                items:
+                  type: string
+                description: 파싱 에러 목록 (optional)
+    '400':
+      description: 시나리오 파싱 실패
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                enum: [parse_error]
+              errors:
+                type: array
+                items:
+                  type: string
+                example: ["Invalid missionMode value"]

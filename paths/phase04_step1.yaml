@@ -1,0 +1,48 @@
+# Phase 4 / Step 1: Start Mission (Simulation Start)
+# From: MainGUI → To: SimulationStateServer.TimeManagement
+post:
+  tags: [Phase 4 Simulation Runtime]
+  summary: "P4.1 Start Simulation"
+  description: |
+    시뮬레이션 시간을 개시합니다.
+    - **From**: MainGUI
+    - **To**: SimulationStateServer.TimeManagement
+    - **Type**: action
+  operationId: startSimulation
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required: [sessionId, startTime, timeScale]
+          properties:
+            sessionId:
+              type: string
+              format: uuid
+              example: "sess-11223344-5566-7788-99aa-bbccddeeff00"
+            startTime:
+              type: string
+              format: date-time
+              description: "시뮬레이션 시작 시각 (ISO8601)"
+              example: "2026-04-15T09:00:00Z"
+            timeScale:
+              type: number
+              description: "시간 배속 (1.0 = 실시간, 2.0 = 2배속)"
+              example: 1.0
+  responses:
+    '200':
+      description: 시뮬레이션 시작됨
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                enum: [running]
+                example: "running"
+              simStartTime:
+                type: string
+                format: date-time
+                example: "2026-04-15T09:00:00Z"

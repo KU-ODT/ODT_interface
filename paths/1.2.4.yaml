@@ -1,8 +1,0 @@
-# 1.2.4 [CreateObjects]
-post:
-  tags: [Initial Setting]
-  summary: 1.2.4 CreateObjects
-  description: Batch creation of general simulation objects
-  responses:
-    '200':
-      description: Objects created

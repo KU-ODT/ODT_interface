@@ -1,0 +1,19 @@
+# Phase 0-1 / Step 1: User Access
+# From: External User → To: MainGUI.MissionDefine
+get:
+  tags: [Phase 0-1 Scenario Setup]
+  summary: "P0-1.1 User Access"
+  description: |
+    사용자가 웹 브라우저를 통해 Main GUI에 접속합니다.
+    - **From**: External User
+    - **To**: MainGUI.MissionDefine
+    - **Type**: action
+  operationId: userAccessMainGUI
+  responses:
+    '200':
+      description: Main GUI 접속 성공 (운용모드 선택 및 시나리오 구성 화면)
+      content:
+        text/html:
+          schema:
+            type: string
+            description: Main GUI HTML 페이지

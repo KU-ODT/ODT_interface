@@ -1,0 +1,50 @@
+# Phase 2 / Step 8-9: Request AI Model → Return Model Weight
+# From: DTAMCore.SessionConnectionManager → To: AILibrary
+# Response: AILibrary → DTAMCore.SessionConnectionManager
+post:
+  tags: [Phase 2 Initialization]
+  summary: "P2.8 Request AI Model Load"
+  description: |
+    AI 라이브러리에 모델 로드를 요청합니다.
+    - **From**: DTAMCore.SessionConnectionManager
+    - **To**: AILibrary (plug-in)
+    - **Type**: action
+    - **Response (Step 9)**: 모델 ID, 버전, Weight 참조 경로 반환
+  operationId: requestAIModelLoad
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required: [modelType, scenarioId]
+          properties:
+            modelType:
+              type: string
+              enum: [path_prediction, collision_avoidance, optimal_route]
+              example: "collision_avoidance"
+            scenarioId:
+              type: string
+              example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+  responses:
+    '200':
+      description: AI 모델 로드 완료
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              modelId:
+                type: string
+                example: "ca-model-v3"
+              modelVersion:
+                type: string
+                example: "3.2.1"
+              weightRef:
+                type: string
+                description: "모델 Weight 파일의 URL 또는 경로"
+                example: "/models/ca-model-v3/weights.bin"
+              status:
+                type: string
+                enum: [loaded]
+                example: "loaded"

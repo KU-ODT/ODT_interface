@@ -1,0 +1,67 @@
+# Phase 6 / Step 4: Replanned Mission → Vehicle
+# From: SimulationStateServer.ObjectStateControl → To: AirMobilityModule.MissionExecution
+put:
+  tags: [Phase 6 Replanning]
+  summary: "P6.4 Deploy Replanned Mission to Vehicle"
+  description: |
+    재계획된 임무를 Vehicle에 배포하여 궤적을 변경합니다.
+    - **From**: SimulationStateServer.ObjectStateControl
+    - **To**: AirMobilityModule.MissionExecution
+    - **Type**: action
+    - **Protocol**: HTTP PUT / gRPC
+  operationId: deployReplannedMissionToVehicle
+  parameters:
+    - name: vehicleId
+      in: path
+      required: true
+      schema:
+        type: string
+        example: "UAV-001"
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required: [missionId, version, waypoints, immediateAction]
+          properties:
+            missionId:
+              type: string
+              format: uuid
+            version:
+              type: integer
+              example: 2
+            waypoints:
+              type: array
+              items:
+                type: object
+                properties:
+                  lat: { type: number }
+                  lon: { type: number }
+                  alt: { type: number }
+                  speed: { type: number }
+            immediateAction:
+              type: string
+              enum: [reroute, hold, return_to_base]
+              example: "reroute"
+              description: "즉시 수행할 액션"
+  responses:
+    '200':
+      description: 재계획 임무 Vehicle에 배포 완료
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              vehicleId:
+                type: string
+              missionId:
+                type: string
+                format: uuid
+              version:
+                type: integer
+                example: 2
+              status:
+                type: string
+                enum: [rerouting, holding, returning]
+                example: "rerouting"

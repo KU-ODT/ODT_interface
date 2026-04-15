@@ -1,8 +1,0 @@
-# 3.2.3 [DesireState]
-get:
-  tags: [Event Propagation]
-  summary: 3.2.3 DesireState (Get)
-  description: Get current desired state events
-  responses:
-    '200':
-      description: Current desire state

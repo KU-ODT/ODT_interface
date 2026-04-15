@@ -1,107 +1,212 @@
 openapi: 3.0.0
 info:
-  title: Simulation Data Interface
-  description: API interface for controlling simulation lifecycle, configuration, and event propagation.
-  version: 1.1.0
+  title: DTAM System Data Flow Specification
+  description: |
+    DTAM (Digital Twin-based Air Mobility) 시스템의 Phase별 데이터 플로우 정의.
+
+    ## 모듈 구성
+    | Module | Description |
+    |--------|-------------|
+    | **MainGUI** | 사용자 인터페이스 - 시나리오 구성, 시뮬레이션 제어 |
+    | **StakeholderGUI** | 이해관계자 모니터링 화면 (3D 시각화, 상태 대시보드) |
+    | **DTAMCore** | DTAM 핵심 엔진 (세션/연결 관리, 시나리오 파싱) |
+    | **SimulationStateServer** | 시뮬레이션 상태 서버 (실시간 상태 관리, 시간 동기화) |
+    | **MissionManagement** | 임무 관리 모듈 (계획, 모니터링, 재계획) |
+    | **AirMobilityModule** | 항공 모빌리티 모듈 (비행체 시뮬레이션) |
+    | **3DEnvironment** | 3D 환경 렌더링 (지형, 기상, 장애물 시각화) |
+    | **AILibrary** | AI 라이브러리 (plug-in) - 경로 예측, 충돌 회피, 최적 경로 생성 |
+    | **HighFidelityDatabase** | 고충실도 데이터베이스 (임무 로그, 임무 유형) |
+  version: 1.0.0
+
 tags:
-  - name: Initial Setting
-    description: 1.x Simulation Initialization & Configuration
-  - name: Execution
-    description: 2.x Simulation Runtime Control
-  - name: Event Propagation
-    description: 3.x Dynamic Event Handling & Monitoring
+  - name: Phase 0-1 Scenario Setup
+    description: |
+      사용자가 Main GUI에 접속, 운용모드 선택 후 시나리오 구성 → Scenario Spec을 Core에 전달
+  - name: Phase 2 Initialization
+    description: |
+      [세팅] 클릭 → Core가 세션 생성 후 각 모듈을 순차 기동, Endpoint IP 등록
+  - name: Phase 3 Mission Planning
+    description: |
+      [실행] 클릭 → Mission Planning이 초기 임무 계획(v1) 생성 → State Server 등록 → Vehicle에 배포
+  - name: Phase 4 Simulation Runtime
+    description: |
+      시뮬레이션 시간 개시 → Vehicle 기동 → 상태 지속 업데이트 → 3D/Stakeholder GUI 구독
+  - name: Phase 5 Monitoring and Events
+    description: |
+      Monitoring이 State Server 실시간 감시, Event Handler가 랜덤 이벤트 발생
+  - name: Phase 6 Replanning
+    description: |
+      Monitoring이 위험 감지 → Replanning이 AI Library 활용 Mission v2 생성 → State Server 반영 → Vehicle 궤적 변경
 
 paths:
   # ==========================================
-  # 1. Simulation Initial Setting
+  # Phase 0-1: Scenario Setup
   # ==========================================
-  /sim/init:
-    $ref: './paths/1.1.1.yaml'
-  /sim/executor/vdt:
-    $ref: './paths/1.1.2_vdt.yaml'
-  /sim/executor/uatm:
-    $ref: './paths/1.1.2_uatm.yaml'
-  /sim/executor/vpos:
-    $ref: './paths/1.1.2_vpos.yaml'
-  /config/ip/uatm:
-    $ref: './paths/1.1.3_uatm.yaml'
-  /config/ip/vpos:
-    $ref: './paths/1.1.3_vpos.yaml'
-  /config/ip/vehicles:
-    $ref: './paths/1.1.3_vehicles.yaml'
-  /config/ip/access:
-    $ref: './paths/1.1.4.yaml'
-  /config/vehicle:
-    $ref: './paths/1.2.1_vehicle.yaml'
-  /config/corridor:
-    $ref: './paths/1.2.1_corridor.yaml'
-  /config/vertiport:
-    $ref: './paths/1.2.1_vertiport.yaml'
-  /config/passenger:
-    $ref: './paths/1.2.1_passenger.yaml'
-  /spawn/vehicle:
-    $ref: './paths/1.2.2_vehicle.yaml'
-  /spawn/corridor:
-    $ref: './paths/1.2.2_corridor.yaml'
-  /spawn/vpo:
-    $ref: './paths/1.2.2_vpo.yaml'
-  /create/vertiport:
-    $ref: './paths/1.2.3_vertiport.yaml'
-  /create/vehicle:
-    $ref: './paths/1.2.3_vehicle.yaml'
-  /create/objects:
-    $ref: './paths/1.2.4.yaml'
-  /status/init-success:
-    $ref: './paths/1.2.5.yaml'
-  /env/gust:
-    $ref: './paths/1.3.1_gust.yaml'
-  /env/bird:
-    $ref: './paths/1.3.1_bird.yaml'
-  /env/dynamic:
-    $ref: './paths/1.3.2.yaml'
+  /api/v1/gui:
+    $ref: './paths/phase01_step1.yaml'
+  /api/v1/scenarios:
+    $ref: './paths/phase01_step2.yaml'
 
   # ==========================================
-  # 2. Execution
+  # Phase 2: Initialization (Orchestration)
   # ==========================================
-  /socket/monitoring:
-    $ref: './paths/2.0.1.yaml'
-  /socket/env:
-    $ref: './paths/2.0.2.yaml'
-  /socket/vehicle:
-    $ref: './paths/2.0.3.yaml'
-  /socket/ue-sensor:
-    $ref: './paths/2.0.4.yaml'
-  /socket/py-sensor:
-    $ref: './paths/2.0.5.yaml'
-  /sim/start:
-    $ref: './paths/2.1.1.yaml'
-  /fpl/generate:
-    $ref: './paths/2.1.2.yaml'
-  /fpl/set:
-    $ref: './paths/2.1.3.yaml'
-  /state/desire:
-    $ref: './paths/2.1.4.yaml'
+  /api/v1/sessions:
+    $ref: './paths/phase02_step1.yaml'
+  /api/v1/modules/3d-environment/launch:
+    $ref: './paths/phase02_step2.yaml'
+  /api/v1/modules/vehicles/launch:
+    $ref: './paths/phase02_step4.yaml'
+  /api/v1/modules/stakeholder-gui/launch:
+    $ref: './paths/phase02_step7.yaml'
+  /api/v1/ai/models/load:
+    $ref: './paths/phase02_step8.yaml'
 
   # ==========================================
-  # 3. Event Propagation
+  # Phase 3: Mission Planning
   # ==========================================
-  /event/socket/env:
-    $ref: './paths/3.0.1.yaml'
-  /event/socket/monitoring:
-    $ref: './paths/3.0.2.yaml'
-  /event/socket/sensor:
-    $ref: './paths/3.0.3.yaml'
-  /event/dynamic-handle:
-    $ref: './paths/3.1.1.yaml'
-  /status/vertiport:
-    $ref: './paths/3.2.1.yaml'
-  /plan/global:
-    $ref: './paths/3.2.2.yaml'
-  /state/current/desire:
-    $ref: './paths/3.2.3.yaml'
-  /plan/sa-replan:
-    $ref: './paths/3.3.1.yaml'
-  /plan/confirm:
-    $ref: './paths/3.3.2.yaml'
-  /event/desire-state:
-    $ref: './paths/3.3.3.yaml'
+  /api/v1/missions/plan:
+    $ref: './paths/phase03_step1.yaml'
+  /api/v1/ai/predict:
+    $ref: './paths/phase03_step1_1.yaml'
+  /api/v1/state/missions/{missionId}:
+    $ref: './paths/phase03_step2.yaml'
+  /api/v1/vehicles/{vehicleId}/mission:
+    $ref: './paths/phase03_step3.yaml'
+  /api/v1/state/init:
+    $ref: './paths/phase03_step4.yaml'
+
+  # ==========================================
+  # Phase 4: Simulation Runtime
+  # ==========================================
+  /api/v1/simulation/start:
+    $ref: './paths/phase04_step1.yaml'
+  /api/v1/vehicles/{vehicleId}/start:
+    $ref: './paths/phase04_step5.yaml'
+
+  # ==========================================
+  # Phase 5: Monitoring & Events
+  # ==========================================
+  /api/v1/logs/events:
+    $ref: './paths/phase05_step4.yaml'
+
+  # ==========================================
+  # Phase 6: Replanning (AI-based)
+  # ==========================================
+  /api/v1/ai/replan:
+    $ref: './paths/phase06_step2.yaml'
+  /api/v1/state/missions/{missionId}/replan:
+    $ref: './paths/phase06_step3.yaml'
+  /api/v1/vehicles/{vehicleId}/mission/replan:
+    $ref: './paths/phase06_step4.yaml'
+  /api/v1/logs/missions:
+    $ref: './paths/phase06_step4_1.yaml'
+
+# ==========================================
+# Non-REST Async Flows (Documentation Only)
+# ==========================================
+x-async-flows:
+  phase2:
+    - step: 10
+      label: "Launch Stkhldr (cont.)"
+      from: DTAMCore.SessionConnectionManager
+      to: StakeholderGUI
+      protocol: WebSocket
+      description: "전체 모듈 연결 정보 전달, 구독 시작"
+
+  phase4:
+    - step: 2
+      label: "Check Time"
+      from: AirMobilityModule.MissionExecution
+      to: SimulationStateServer.TimeManagement
+      protocol: gRPC Streaming
+      description: "시뮬레이션 시간 동기화 (지속적)"
+      data:
+        request: { vehicleId: "string", lastSyncTick: "int" }
+        response: { currentTick: "int", simTime: "ISO8601", deltaT: "seconds" }
+
+    - step: 4
+      label: "State Update"
+      from: AirMobilityModule.FlightDynamics
+      to: SimulationStateServer.ObjectStateControl
+      protocol: gRPC Streaming / Pub-Sub
+      description: "Vehicle 상태 지속 업데이트 (위치, 속도, 자세, 연료, 진행률)"
+      data:
+        vehicleId: "string"
+        tick: "int"
+        position: { lat: "num", lon: "num", alt: "num" }
+        velocity: { vx: "num", vy: "num", vz: "num" }
+        attitude: { roll: "num", pitch: "num", yaw: "num" }
+        fuelRemaining: "num"
+        missionProgress: "0-1"
+
+    - step: 6
+      label: "Monitoring & Replanning Result"
+      from: SimulationStateServer.DataManagement
+      to: MissionManagement.Monitoring
+      protocol: WebSocket Pub-Sub
+      description: "상태 업데이트, 이벤트, 알림 구독"
+      data:
+        subscription_topics: ["state_update", "event", "alert"]
+
+  phase5:
+    - step: 1
+      label: "Check Time"
+      from: SimulationStateServer.TimeManagement
+      to: SimulationStateServer.EventHandler
+      protocol: Internal
+      description: "이벤트 핸들러 시간 체크 (내부 통신)"
+      data: { currentTick: "int", eventQueue: "array" }
+
+    - step: 2
+      label: "Move"
+      from: SimulationStateServer.ObjectStateControl
+      to: AirMobilityModule.FlightDynamics
+      protocol: gRPC Streaming
+      description: "비행 역학 엔진에 현재 상태 전달 → 다음 상태 계산"
+      data:
+        request: { vehicleId: "string", currentState: "object(pos,vel,att)", deltaT: "num" }
+
+    - step: 3
+      label: "Collision/Weather/Sensor Events"
+      from: SimulationStateServer.EventHandler
+      to: SimulationStateServer.DataManagement
+      protocol: Internal Event Bus
+      description: "랜덤 이벤트 발생 (충돌, 기상변화, 센서이상, 장애물)"
+      data:
+        events:
+          - eventType: "collision|weather_change|sensor_anomaly|obstacle"
+            severity: "info|warning|critical"
+            affectedEntities: "array(vehicleIds)"
+
+    - step: 5
+      label: "Real Time Observed / Monitoring Result"
+      from: SimulationStateServer.DataManagement
+      to: MissionManagement.Monitoring
+      protocol: WebSocket Pub-Sub
+      description: "실시간 관측 데이터 및 알림 전달"
+      data:
+        observedData: "object"
+        alerts: "array({level,message,entityId})"
+
+    - step: "5-1"
+      label: "Monitoring Result → Stakeholder"
+      from: MissionManagement.Monitoring
+      to: StakeholderGUI
+      protocol: WebSocket Pub-Sub
+      description: "대시보드 업데이트, Vehicle 상태 전달"
+      data:
+        dashboardUpdate: "object"
+        vehicleStatuses: "array"
+
+  phase6:
+    - step: 1
+      label: "Trigger Replan"
+      from: MissionManagement.Monitoring
+      to: MissionManagement.Replanning
+      protocol: Internal Event Bus
+      description: "위험 감지 시 재계획 트리거"
+      data:
+        triggerType: "collision_risk|weather_change|obstacle_detected|manual"
+        severity: "warning|critical"
+        affectedVehicles: "array"
+        currentState: "object"

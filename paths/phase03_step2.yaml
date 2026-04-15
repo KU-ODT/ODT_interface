@@ -1,0 +1,81 @@
+# Phase 3 / Step 2: Mission v1 Registration
+# From: MissionManagement.MissionPlanning → To: SimulationStateServer.ObjectStateControl
+# Response (2-R): SimulationStateServer.ObjectStateControl → MissionManagement.MissionPlanning
+put:
+  tags: [Phase 3 Mission Planning]
+  summary: "P3.2 Register Mission v1"
+  description: |
+    초기 임무 계획(v1)을 State Server에 등록합니다.
+    - **From**: MissionManagement.MissionPlanning
+    - **To**: SimulationStateServer.ObjectStateControl
+    - **Type**: action
+    - **Response (2-R)**: 등록 완료 확인
+  operationId: registerMissionV1
+  parameters:
+    - name: missionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required: [missionId, version, waypoints]
+          properties:
+            missionId:
+              type: string
+              format: uuid
+            version:
+              type: integer
+              example: 1
+            waypoints:
+              type: array
+              items:
+                type: object
+                required: [lat, lon, alt]
+                properties:
+                  lat: { type: number, example: 37.5665 }
+                  lon: { type: number, example: 126.9780 }
+                  alt: { type: number, example: 200 }
+                  speed: { type: number, example: 60.0 }
+                  action:
+                    type: string
+                    example: "flythrough"
+                    description: "웨이포인트 도착 시 액션"
+            timeline:
+              type: object
+              description: "임무 타임라인"
+              properties:
+                estimatedDuration:
+                  type: number
+                  description: "예상 소요시간 (초)"
+                  example: 1800
+            vehicleAssignment:
+              type: object
+              description: "비행체 할당 정보"
+              properties:
+                vehicleId:
+                  type: string
+                  example: "UAV-001"
+  responses:
+    '200':
+      description: Mission v1 등록 완료
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                enum: [registered]
+                example: "registered"
+              missionId:
+                type: string
+                format: uuid
+              version:
+                type: integer
+                example: 1

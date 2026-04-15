@@ -1,0 +1,792 @@
+# ODT (Operational Digital Twin) 실행 흐름 상세 분석
+
+> **표기 규칙**
+> - 🖥️ `[GUI]` — 사용자가 실제 보고 조작하는 화면
+> - ⚙️ `[로직]` — 화면 뒤에서 동작하는 내부 코드 (Store, Service, API 모듈 등)
+> - 🌐 `[백엔드]` — 외부 서버 / 시뮬레이터
+
+## 목차
+1. [ODT 전체 실행 흐름 개요](#1-odt-전체-실행-흐름-개요)
+2. [Phase 1: 로그인 → 홈 → 서비스 설정 로드](#2-phase-1)
+3. [Phase 2: Initial Configuration (초기 설정)](#3-phase-2)
+4. [Phase 3: Mission Execution (미션 실행)](#4-phase-3)
+5. [Phase 4: Operation Environment (시각화 서비스)](#5-phase-4)
+6. [Phase 5: Vertiport Customize (Customize 모드)](#6-phase-5)
+7. [상태 머신 & 가드 시스템](#7-상태-머신)
+8. [데이터 폴링 & 실시간 모니터링](#8-데이터-폴링)
+
+---
+
+## 1. ODT 전체 실행 흐름 개요
+
+```mermaid
+graph TD
+    LOGIN["🖥️ 로그인 GUI"] --> HOME["🖥️ 홈 GUI 진입 & 부트스트랩"]
+    HOME --> CONFIG["🖥️ Configuration GUI<br/>환경/기체/미션/AI 설정"]
+    CONFIG -->|RUN ODT SYSTEM 버튼| READY{Configuration<br/>Ready?}
+    READY -->|Yes + Simple 모드| MISSION_SIMPLE["🖥️ Use Case GUI<br/>미션 프로파일 실행"]
+    READY -->|Yes + Customize 모드| VERTIPORT["🖥️ Customize GUI<br/>버티포트 설정"]
+    READY -->|Yes| VIS["🖥️ Operation Environment GUI<br/>시각화 iframe"]
+    READY -->|Yes| SIT["🖥️ Situation Monitoring GUI<br/>상황 모니터링 iframe"]
+    
+    MISSION_SIMPLE --> CONNECT[AirSim 연결]
+    CONNECT --> START[미션 시작]
+    START --> POLLING[1초 간격 폴링<br/>Status + Sensors + Logs]
+    POLLING --> CONTROL{제어 명령}
+    CONTROL -->|Pause| PAUSE[일시정지]
+    CONTROL -->|Resume| RESUME[재개]
+    CONTROL -->|Reset| RESET[리셋]
+    
+    style LOGIN fill:#1e3a5f
+    style CONFIG fill:#2d4a2d
+    style MISSION_SIMPLE fill:#4a2d2d
+    style VERTIPORT fill:#4a3d2d
+    style VIS fill:#2d2d4a
+```
+
+---
+
+## 2. Phase 1: 로그인 → 홈 → ODT 서비스 설정 로드 {#2-phase-1}
+
+사용자가 로그인 후 `/home`에 진입하면, 백엔드에서 **서비스 설정 목록**을 받아와 각 Store에 분배합니다. 이 단계가 ODT 실행의 전제 조건입니다.
+
+```mermaid
+sequenceDiagram
+    actor User as 👤 사용자
+
+    box rgb(30, 60, 90) GUI (사용자가 보는 화면)
+        participant LoginGUI as 🖥️ 로그인 GUI
+        participant HomeGUI as 🖥️ 홈 GUI
+    end
+
+    box rgb(50, 50, 50) 내부 로직 (화면 뒤)
+        participant AuthSvc as ⚙️ authService
+        participant AuthStore as ⚙️ authStore
+        participant CompSvc as ⚙️ componentService
+        participant CompStore as ⚙️ compConfigStore
+        participant MissionStore as ⚙️ missionStore
+        participant VertiStore as ⚙️ vertiportStore
+    end
+
+    box rgb(80, 40, 40) 백엔드 서버
+        participant Backend as 🌐 백엔드 API
+    end
+
+    User->>LoginGUI: 아이디/비밀번호 입력 → Login 버튼 클릭
+    LoginGUI->>AuthSvc: loginAndInit({ username, password })
+    AuthSvc->>Backend: POST /api/auth/login (form-urlencoded)
+    Backend-->>AuthSvc: { status: 0, data: { access_token, refresh_token, user, productIdList: [1, 3] } }
+    
+    Note over AuthSvc: status === 0 확인<br/>access_token 및 user.uid 존재 확인
+    
+    AuthSvc->>AuthStore: login({ access_token, refresh_token, uid, nick_name, productIdList })
+    Note over AuthStore: sessionStorage에 모든 정보 저장<br/>productIdList: [1]=ODT, [3]=CADE
+
+    LoginGUI->>HomeGUI: 화면 전환 → /home
+    
+    Note over HomeGUI: ── 홈 GUI 로드 시 ──
+    
+    par 병렬 실행 (Promise.all)
+        HomeGUI->>CompSvc: loadCompConfigs()
+        CompSvc->>Backend: GET /api/component/configs
+        Backend-->>CompSvc: { status: 0, data: [<br/>  { serviceKey: "visualization", componentType: "VM_VNC", vmIp: "192.168.0.xxx", ... },<br/>  { serviceKey: "mission", vmIp: "192.168.0.yyy", ... },<br/>  { serviceKey: "situation", componentType: "VM_VNC", ... },<br/>  { serviceKey: "vertiport", vmIp: "192.168.0.zzz", ... },<br/>  ... ] }
+        
+        Note over CompSvc: 3개 Store에 데이터 분배
+        CompSvc->>CompStore: setFromList(data) → VM_VNC, UE_WEB만 필터링
+        CompSvc->>MissionStore: setFromList(data) → mission vmIp 설정
+        CompSvc->>VertiStore: setFromList(data) → vertiport vmIp 설정
+    and
+        HomeGUI->>Backend: GET /api/websites?affiliation=kada
+        Backend-->>HomeGUI: 외부 URL 목록
+    end
+    
+    Note over HomeGUI: ✅ 부트스트랩 완료<br/>사이드바 메뉴 활성화
+```
+
+> [!IMPORTANT]
+> **`productIdList`의 중요성**: 로그인 시 받아오는 `productIdList`에 `1`(ODT)이 포함되어야 사이드바에 DTAM 메뉴가 나타납니다. 이 값은 `useSidebarMenus.js`에서 `COMPONENT_IDS.ODT`와 비교하여 메뉴를 동적 구성합니다.
+
+---
+
+## 3. Phase 2: Initial Configuration (초기 설정) {#3-phase-2}
+
+Configuration GUI에서 4가지 파라미터를 설정하고 **RUN ODT SYSTEM** 버튼을 클릭하면 시스템이 활성화됩니다.
+
+### 3.1 Configuration GUI 구성
+
+```
+🖥️ Configuration GUI (InitialConfiguration.vue)
+┌──────────────────────────────────────────────────┐
+│         OPERATIONAL DIGITAL TWIN                  │
+│           INITIAL CONFIGURATION                   │
+│                                                   │
+│  ┌──────────────────┬──────────────────────────┐  │
+│  │ OPERATION ENV    │ VEHICLE CONFIGURATION     │  │
+│  │ [서울 ▾]         │ [Low] [Mid] [✅ High]     │  │
+│  │ Urban, Controlled│                           │  │
+│  │ Weather: Clear   │ ← 카드 클릭으로 선택      │  │
+│  ├──────────────────┼──────────────────────────┤  │
+│  │ MISSION SCENARIO │ AI PLUGINS               │  │
+│  │ [✅ Simple]      │ [YOLO] [✅ R-YOLO]       │  │
+│  │ [Customize]      │                           │  │
+│  └──────────────────┴──────────────────────────┘  │
+│                                                   │
+│  Status: Env: Seoul | Vehicle: High | Mission: ..│
+│                                                   │
+│  [Save Configuration] [🟢 RUN ODT SYSTEM] [Load] │
+└──────────────────────────────────────────────────┘
+```
+
+### 3.2 설정 파라미터
+
+| GUI 패널 | 파라미터 | 선택 옵션 | 기본값 |
+|----------|----------|----------|--------|
+| **Operation ENV** | `city` | Seoul (+ 기타 한국 도시 드롭다운) | `Seoul` |
+| **Vehicle Configuration** | `vehicle` | Low-Fidelity / Mid-Fidelity / High-Fidelity | `High-Fidelity` |
+| **Mission Scenario** | `mission` | Simple / Customize | `Simple` |
+| **AI Plugins** | `ai` | YOLO / R-YOLO | `R-YOLO` |
+
+### 3.3 RUN ODT SYSTEM 시퀀스
+
+```mermaid
+sequenceDiagram
+    actor User as 👤 사용자
+
+    box rgb(30, 60, 90) GUI (사용자가 보는 화면)
+        participant ConfigGUI as 🖥️ Configuration GUI
+        participant SidebarGUI as 🖥️ 사이드바 GUI
+        participant ToastGUI as 🖥️ 토스트 알림
+    end
+
+    box rgb(50, 50, 50) 내부 로직 (화면 뒤)
+        participant ODTStore as ⚙️ odtStore
+        participant MsgStore as ⚙️ messageStore
+        participant MenuLogic as ⚙️ useSidebarMenus
+    end
+
+    Note over ConfigGUI: 내부 상태 (confParams):<br/>vehicle: 'High-Fidelity'<br/>city: 'Seoul'<br/>mission: 'Simple'<br/>ai: 'R-YOLO'
+
+    User->>ConfigGUI: 도시 드롭다운에서 선택
+    Note over ConfigGUI: confParams.city = 'Seoul'
+
+    User->>ConfigGUI: 기체 카드 클릭
+    Note over ConfigGUI: 선택된 카드가 위로 떠오르며 glow 효과
+
+    User->>ConfigGUI: 미션 모드 카드 클릭
+    Note over ConfigGUI: confParams.mission = 'Simple'
+
+    User->>ConfigGUI: AI 플러그인 카드 클릭
+    Note over ConfigGUI: confParams.ai = 'R-YOLO'
+
+    Note over ConfigGUI: ── 하단 Status Bar 실시간 표시 ──<br/>Env: Seoul | Vehicle: High | Mission: Simple | AI: R-YOLO
+
+    User->>ConfigGUI: 🟢 "RUN ODT SYSTEM" 버튼 클릭
+
+    alt 파라미터 미완성 (하나라도 비어있음)
+        ConfigGUI->>MsgStore: show({ type: 'warning' })
+        MsgStore->>ToastGUI: ⚠️ 경고 토스트 표시 (2.5초 후 자동 사라짐)
+    else 모든 파라미터 완성
+        ConfigGUI->>ODTStore: setInitialConfiguration({<br/>  vehicle: 'High-Fidelity',<br/>  city: 'Seoul',<br/>  mission: 'simple',  ← toLowerCase()!<br/>  ai: 'R-YOLO'<br/>})
+        Note over ODTStore: parametersCompleted = true
+
+        ConfigGUI->>ODTStore: markRunClicked()
+        Note over ODTStore: runClicked = true<br/>✅ isConfigurationReady = true
+
+        ConfigGUI->>MsgStore: show({ type: 'success' })
+        MsgStore->>ToastGUI: ✅ 성공 토스트 표시
+    end
+
+    Note over MenuLogic: computed() 재평가<br/>odtStore.isConfigurationReady = true
+
+    MenuLogic->>SidebarGUI: 메뉴 업데이트:<br/>Mission Plan, Operation Environment,<br/>Situation Monitoring 활성화
+    
+    Note over SidebarGUI: mission === 'simple' 이면:<br/>  ✅ Use Case 활성<br/>  ❌ Customize 비활성 (회색)<br/><br/>mission === 'customize' 이면:<br/>  ❌ Use Case 비활성 (회색)<br/>  ✅ Customize 활성
+```
+
+### 3.4 Mission Consistency Guard (미션 일관성 감시)
+
+Configuration 내부에서 `watch`를 통해 미션 모드 변경 시 잘못된 GUI에 머물러 있는 것을 방지합니다:
+
+```mermaid
+sequenceDiagram
+    box rgb(50, 50, 50) 내부 로직
+        participant Watch as ⚙️ watch(mission 변경 감지)
+        participant Router as ⚙️ Vue Router
+    end
+
+    box rgb(30, 60, 90) GUI
+        participant CurrentGUI as 🖥️ 현재 보고 있는 GUI
+        participant ConfigGUI as 🖥️ Configuration GUI
+    end
+    
+    Note over Watch: 미션 모드가 변경될 때마다 실행
+
+    alt Use Case GUI를 보고 있는데 mission이 'customize'로 변경
+        Watch->>Router: router.replace('/home/odt/configuration')
+        Router->>ConfigGUI: Configuration GUI로 강제 전환
+    else Customize GUI를 보고 있는데 mission이 'simple'로 변경
+        Watch->>Router: router.replace('/home/odt/configuration')
+        Router->>ConfigGUI: Configuration GUI로 강제 전환
+    else 정상 상태
+        Note over Watch: 아무 행동 없음
+    end
+```
+
+---
+
+## 4. Phase 3: Mission Execution (Simple 모드 - 미션 실행) {#4-phase-3}
+
+Simple 모드에서 Use Case 메뉴를 선택하면 **Use Case GUI**가 로드되어 AirSim 시뮬레이터와 통신합니다.
+
+### 4.1 Use Case GUI 구성 (3-Column Layout)
+
+```
+🖥️ Use Case GUI (MissionUpload.vue)
+┌────────────────────────────────────────────────────────────────────┐
+│  KADA ODT PROJECTS - MISSION PROFILE RUNNER    ● SYSTEM CONNECTED │
+├──────────────┬──────────────────────┬──────────────────────────────┤
+│ 좌측 패널     │   중앙 패널           │   우측 패널                   │
+│              │                      │                              │
+│ LINK SETTINGS│   TELEMETRY FEED     │   SYSTEM CONSOLE             │
+│ • IP: (자동) │   ┌──────────────┐   │   ┌──────────────────────┐   │
+│ • Port:(자동)│   │ SENSOR KEY   │   │   │ [UAM1] Taking off    │   │
+│ • Vehicles:  │   │ VALUE        │   │   │ [UAM1] Ascending     │   │
+│   UAM1       │   │ ────────────│   │   │ [UAM1] Waypoint 1    │   │
+│              │   │ UAM1/alt  42│   │   │ [UAM1] Cruising      │   │
+│ [CONNECT]    │   │ UAM1/spd  15│   │   │ ...                  │   │
+│              │   │ UAM1/bat  98│   │   └──────────────────────┘   │
+│ COMMANDS     │   └──────────────┘   │                              │
+│ [START (S0)] │                      │                              │
+│ [RESUME]     │     1초마다 자동 갱신   │      1초마다 자동 갱신         │
+│ [PAUSE]      │                      │                              │
+│ [RESET]      │                      │                              │
+├──────────────┴──────────────────────┴──────────────────────────────┤
+│  2026-03-31 11:48:00                                               │
+└────────────────────────────────────────────────────────────────────┘
+```
+
+### 4.2 연결 (CONNECT) 시퀀스
+
+```mermaid
+sequenceDiagram
+    actor User as 👤 사용자
+
+    box rgb(30, 60, 90) GUI
+        participant MissionGUI as 🖥️ Use Case GUI
+    end
+
+    box rgb(50, 50, 50) 내부 로직
+        participant MissionAPI as ⚙️ mission API 모듈
+        participant MissionStore as ⚙️ missionStore
+        participant RequestLayer as ⚙️ request.js → missionhttp (axios)
+    end
+
+    box rgb(80, 40, 40) 백엔드
+        participant Gateway as 🌐 미션 게이트웨이
+        participant AirSim as 🌐 AirSim VM
+    end
+
+    User->>MissionGUI: "CONNECT" 버튼 클릭
+
+    MissionGUI->>MissionAPI: connect()
+    MissionAPI->>MissionStore: vmIp 확인
+    
+    alt vmIp가 없으면
+        MissionAPI-->>MissionGUI: Error('Mission VM is not selected')
+    end
+    
+    MissionAPI->>RequestLayer: missionpost("/{vmIp}/connect")
+    Note over RequestLayer: Authorization: Bearer {token} 자동 부착
+    
+    RequestLayer->>Gateway: POST /kada/odt/mission/{vmIp}/connect
+    Gateway->>AirSim: AirSim 연결 요청
+    AirSim-->>Gateway: 연결 성공 + 기체 초기화
+    Gateway-->>MissionGUI: { connected: true, airsim_ip, airsim_port }
+
+    Note over MissionGUI: GUI 상태 변경:<br/>• 헤더: "○ DISCONNECTED" → "● SYSTEM CONNECTED"<br/>• CONNECT 버튼 → 빨간 DISCONNECT 버튼으로 전환
+    
+    Note over MissionGUI: ── 즉시 데이터 새로고침 ──
+    MissionGUI->>Gateway: GET /{vmIp}/status
+    Gateway-->>MissionGUI: 연결 정보
+    Note over MissionGUI: GUI 반영: LINK SETTINGS에 IP/PORT 표시
+
+    MissionGUI->>Gateway: GET /{vmIp}/sensors
+    Gateway-->>MissionGUI: 센서 초기값
+    Note over MissionGUI: GUI 반영: TELEMETRY FEED 테이블에 초기 센서 데이터
+
+    MissionGUI->>Gateway: GET /{vmIp}/logs
+    Gateway-->>MissionGUI: 초기 로그
+    Note over MissionGUI: GUI 반영: SYSTEM CONSOLE에 로그 표시
+
+    Note over MissionGUI: ── 1초 폴링 시작 ──<br/>setInterval(refresh, 1000)
+```
+
+### 4.3 미션 시작 (START) 시퀀스
+
+```mermaid
+sequenceDiagram
+    actor User as 👤 사용자
+
+    box rgb(30, 60, 90) GUI
+        participant MissionGUI as 🖥️ Use Case GUI
+    end
+
+    box rgb(80, 40, 40) 백엔드
+        participant Gateway as 🌐 미션 게이트웨이
+        participant AirSim as 🌐 AirSim VM
+    end
+
+    User->>MissionGUI: "START (S0)" 버튼 클릭
+    Note over MissionGUI: 미연결 시 버튼 비활성화 (회색)
+
+    MissionGUI->>Gateway: POST /{vmIp}/start
+    Gateway->>AirSim: 미션 시작 (Stage 0)
+    AirSim-->>MissionGUI: 미션 시작 성공
+
+    Note over MissionGUI: ── 이후 폴링 사이클에서 GUI 자동 갱신 (매 1초) ──
+    
+    loop 매 1초마다 (setInterval)
+        MissionGUI->>Gateway: GET /{vmIp}/status
+        Gateway-->>MissionGUI: { connected: true, vehicles: { UAM1: { stage: 2, status: 'cruising' } } }
+        Note over MissionGUI: GUI: LINK SETTINGS 패널 갱신
+
+        MissionGUI->>Gateway: GET /{vmIp}/sensors
+        Gateway-->>MissionGUI: { UAM1: { altitude: 150, speed: 25, battery: 87 } }
+        Note over MissionGUI: GUI: TELEMETRY FEED 테이블 갱신<br/>"UAM1/altitude" → 150<br/>"UAM1/speed" → 25
+
+        MissionGUI->>Gateway: GET /{vmIp}/logs
+        Gateway-->>MissionGUI: [ { vehicle: 'UAM1', message: 'Waypoint 3 reached' } ]
+        Note over MissionGUI: GUI: SYSTEM CONSOLE 로그 라인 추가
+    end
+```
+
+### 4.4 미션 제어 (PAUSE / RESUME / RESET)
+
+```mermaid
+sequenceDiagram
+    actor User as 👤 사용자
+
+    box rgb(30, 60, 90) GUI
+        participant MissionGUI as 🖥️ Use Case GUI
+    end
+
+    box rgb(80, 40, 40) 백엔드
+        participant Gateway as 🌐 미션 게이트웨이
+        participant AirSim as 🌐 AirSim
+    end
+
+    rect rgb(40, 60, 40)
+        Note over User,AirSim: PAUSE (일시정지 / 호버링)
+        User->>MissionGUI: "PAUSE / HOVER" 버튼 클릭
+        MissionGUI->>Gateway: POST /{vmIp}/pause
+        Gateway->>AirSim: 미션 일시정지 (기체 호버링)
+        AirSim-->>MissionGUI: 일시정지 확인
+    end
+
+    rect rgb(40, 40, 60)
+        Note over User,AirSim: RESUME (재개)
+        User->>MissionGUI: "RESUME" 버튼 클릭
+        MissionGUI->>Gateway: POST /{vmIp}/resume
+        Gateway->>AirSim: 미션 재개
+        AirSim-->>MissionGUI: 재개 확인
+    end
+
+    rect rgb(60, 40, 40)
+        Note over User,AirSim: RESET (리셋)
+        User->>MissionGUI: "RESET UAMSIM" 버튼 클릭
+        Note over MissionGUI: GUI: 확인 팝업 표시 "Reset AirSim?"
+        
+        alt 사용자가 "취소" 클릭
+            Note over MissionGUI: 아무 동작 없음
+        else 사용자가 "확인" 클릭
+            MissionGUI->>Gateway: POST /{vmIp}/reset
+            Gateway->>AirSim: AirSim 월드 & 미션 상태 초기화
+            AirSim-->>MissionGUI: 리셋 완료
+            Note over MissionGUI: GUI: SYSTEM CONSOLE 로그 전체 삭제
+        end
+    end
+```
+
+### 4.5 연결 해제 (DISCONNECT) 시퀀스
+
+```mermaid
+sequenceDiagram
+    actor User as 👤 사용자
+
+    box rgb(30, 60, 90) GUI
+        participant MissionGUI as 🖥️ Use Case GUI
+    end
+
+    box rgb(80, 40, 40) 백엔드
+        participant Gateway as 🌐 미션 게이트웨이
+    end
+
+    User->>MissionGUI: "DISCONNECT" 버튼 클릭 (빨간색)
+
+    MissionGUI->>Gateway: POST /{vmIp}/disconnect
+    Gateway-->>MissionGUI: 연결 해제 완료
+    
+    Note over MissionGUI: ⏹️ 1초 폴링 중지
+
+    Note over MissionGUI: GUI 상태 변경:<br/>• 헤더: "● CONNECTED" → "○ DISCONNECTED"<br/>• DISCONNECT 버튼 → 초록 CONNECT 버튼으로 전환<br/>• TELEMETRY FEED 초기화 (빈 테이블)<br/>• SYSTEM CONSOLE 초기화 (빈 로그)<br/>• COMMANDS 버튼 모두 비활성화 (회색)
+```
+
+---
+
+## 5. Phase 4: Operation Environment (시각화 서비스 연결) {#5-phase-4}
+
+Operation Environment GUI와 Situation Monitoring GUI는 같은 코드(`OperationDigital.vue`)를 사용하지만, 서로 다른 서비스에 연결됩니다.
+
+```mermaid
+sequenceDiagram
+    actor User as 👤 사용자
+
+    box rgb(30, 60, 90) GUI
+        participant SidebarGUI as 🖥️ 사이드바 GUI
+        participant VisuGUI as 🖥️ Operation Environment GUI
+    end
+
+    box rgb(50, 50, 50) 내부 로직
+        participant CfgStore as ⚙️ compConfigStore
+        participant UrlStore as ⚙️ serviceUrlStore
+        participant CompSvc as ⚙️ componentService
+    end
+
+    box rgb(80, 40, 40) 백엔드
+        participant Backend as 🌐 백엔드 API
+    end
+
+    User->>SidebarGUI: "Operation Environment" 메뉴 클릭
+    Note over SidebarGUI: GUI: 새 탭 생성 + 탭 활성화
+
+    SidebarGUI->>VisuGUI: GUI 전환 → Operation Environment
+    
+    Note over VisuGUI: GUI: "Connecting to Service..." 로딩 표시
+
+    VisuGUI->>CfgStore: 서비스 설정 조회 (serviceKey: "visualization")
+    CfgStore-->>VisuGUI: { componentType: "VM_VNC", productId: 1, componentId: 101, available: true }
+
+    alt available === false
+        Note over VisuGUI: GUI: "Coming Soon" 안내 텍스트 표시
+    else available === true
+        VisuGUI->>CompSvc: openCompConn("visualization", 1, 101)
+        CompSvc->>Backend: POST /api/comp/conn { product_id: 1, product_component_id: 101 }
+        Backend-->>CompSvc: { serviceUrl: "http://192.168.0.xxx:6080/vnc.html?...", component_type: "VM_VNC" }
+
+        Note over CompSvc: URL에 토큰 + 자동연결 파라미터 추가
+
+        CompSvc->>UrlStore: setService("visualization", { type: "VM_VNC", url: finalUrl })
+
+        Note over VisuGUI: GUI: 로딩 종료<br/>→ VNC iframe 렌더링<br/>→ AirSim VM 화면이 iframe 안에 표시됨
+    end
+```
+
+### 5.1 서비스 타입별 GUI 렌더링
+
+| `component_type` | GUI에 표시되는 내용 | 용도 |
+|------------------|-------------------|------|
+| `VM_VNC` | 🖥️ **VNC iframe** — noVNC 웹 클라이언트 (AirSim 원격 화면) | 시뮬레이터 화면 원격 표시 |
+| `UE_WEB` | 🖥️ **UE iframe** — Unreal Engine Pixel Streaming | 고품질 3D 렌더링 스트리밍 |
+| 기타 / null | 📝 **"Coming Soon" 안내 텍스트** | 미구현 서비스 |
+
+### 5.2 Situation Monitoring (동일 코드, 다른 서비스)
+
+```
+🖥️ Operation Environment GUI → serviceKey = "visualization" → VNC iframe (시각화 서비스)
+🖥️ Situation Monitoring GUI  → serviceKey = "situation"      → VNC iframe (모니터링 서비스)
+```
+
+> [!NOTE]
+> 두 GUI 화면 모두 같은 코드(`OperationDigital.vue`)를 사용하지만, `serviceKey`가 다르므로 **서로 다른 서비스(다른 VM)에 연결**됩니다. 탭을 전환하면 자동으로 해당 서비스에 재연결합니다.
+
+---
+
+## 6. Phase 5: Vertiport Customize (Customize 모드) {#6-phase-5}
+
+Customize 모드 선택 시만 활성화되는 버티포트 설정 GUI입니다.
+
+```mermaid
+sequenceDiagram
+    actor User as 👤 사용자
+
+    box rgb(30, 60, 90) GUI
+        participant SidebarGUI as 🖥️ 사이드바 GUI
+        participant ToastGUI as 🖥️ 토스트 알림
+        participant VertiGUI as 🖥️ Customize GUI
+    end
+
+    box rgb(50, 50, 50) 내부 로직
+        participant Guard as ⚙️ odtMissionGuard
+        participant VStore as ⚙️ vertiportStore
+    end
+
+    User->>SidebarGUI: "Customize" 메뉴 클릭
+
+    alt mission !== 'customize' (Simple 모드일 때)
+        SidebarGUI->>ToastGUI: ⚠️ "Current mission mode is SIMPLE" 경고 표시
+        Note over SidebarGUI: ❌ 화면 전환 없음 (메뉴 클릭 무시)
+    else mission === 'customize'
+        SidebarGUI->>Guard: 라우트 요청: /home/odt/vertiport
+        
+        Note over Guard: ⚙️ 미션 모드 검사 (이중 안전장치)
+        alt 실제로 simple 모드라면
+            Guard->>SidebarGUI: ❌ Configuration GUI로 리다이렉트
+        else customize 모드 확인 ✅
+            Guard->>VertiGUI: Customize GUI 표시
+        end
+        
+        VertiGUI->>VStore: vmIp 읽기
+        
+        alt vmIp 존재
+            Note over VertiGUI: GUI: iframe 렌더링<br/>http://kadaproduct.konkuk.ac.kr:2025<br/>/kada/odt/vertiport/{vmIp}/<br/><br/>→ 버티포트 설정 웹 페이지가<br/>iframe 안에 표시됨
+        else vmIp 없음
+            Note over VertiGUI: GUI: 빈 화면 (iframe 미생성)
+        end
+    end
+```
+
+> [!IMPORTANT]
+> **Customize GUI**는 다른 ODT GUI와 달리 **백엔드에 서비스 연결 요청을 하지 않고**, `vertiportStore.vmIp`를 직접 사용하여 고정 URL 패턴으로 iframe을 생성합니다. URL이 `kadaproduct.konkuk.ac.kr:2025`로 하드코딩되어 있습니다.
+
+---
+
+## 7. 상태 머신 & 가드 시스템 {#7-상태-머신}
+
+### 7.1 ODT 상태 전이 다이어그램
+
+```mermaid
+stateDiagram-v2
+    [*] --> Unconfigured: 앱 시작
+
+    Unconfigured --> ParametersSet: setInitialConfiguration()
+    note right of Unconfigured
+        parametersCompleted: false
+        runClicked: false
+        isConfigurationReady: false
+        
+        → Configuration GUI 외 메뉴 모두 비활성화 (회색)
+    end note
+
+    ParametersSet --> Ready: markRunClicked()
+    note right of ParametersSet
+        parametersCompleted: true
+        runClicked: false
+        isConfigurationReady: false
+        
+        → 아직 메뉴 비활성화
+    end note
+
+    Ready --> Ready: 다른 GUI로 이동 / 미션 실행
+    note right of Ready
+        parametersCompleted: true
+        runClicked: true
+        isConfigurationReady: true
+        
+        → 미션 모드에 따라 메뉴 활성화
+    end note
+
+    Ready --> Unconfigured: odtStore.reset() (로그아웃)
+```
+
+### 7.2 3중 보호 체계
+
+ODT 메뉴 접근은 **3겹의 보호**로 제어됩니다:
+
+```mermaid
+graph TD
+    subgraph "Layer 1: 🖥️ 사이드바 GUI"
+        A1["⚙️ useSidebarMenus<br/>disabled 속성 계산"] -->|disabled = true| A2["🖥️ 사이드바 메뉴 회색 처리"]
+        A2 -->|클릭 시 경고 토스트| A3["🖥️ 토스트 알림"]
+    end
+    
+    subgraph "Layer 2: ⚙️ Route Guard (내부 로직)"
+        B1["⚙️ odtMissionGuard"] -->|simple + vertiport<br/>→ Configuration으로 리다이렉트| B2["🖥️ Configuration GUI"]
+        B1 -->|customize + mission<br/>→ Configuration으로 리다이렉트| B2
+    end
+    
+    subgraph "Layer 3: ⚙️ 컴포넌트 내부 Watch"
+        C1["⚙️ watch(mission 변경)"] -->|현재 GUI가 부적절하면| C2["🖥️ Configuration GUI로 강제 전환"]
+    end
+    
+    style A1 fill:#2d4a2d
+    style B1 fill:#4a3d2d
+    style C1 fill:#2d2d4a
+```
+
+| 보호 계층 | 종류 | 트리거 조건 | 사용자에게 보이는 동작 |
+|-----------|------|------------|---------------------|
+| **Layer 1** | 🖥️ GUI 보호 | Configuration 미완료 혹은 미션 모드 불일치 | **메뉴가 회색** 처리, 클릭 시 **경고 토스트** 출력 |
+| **Layer 2** | ⚙️ 라우트 보호 | URL 직접 입력으로 잘못된 GUI 접근 시도 | **자동으로 Configuration GUI로 전환** |
+| **Layer 3** | ⚙️ 실시간 감시 | 다른 GUI에 있는 상태에서 미션 모드 변경 | **자동으로 Configuration GUI로 전환** |
+
+---
+
+## 8. 데이터 폴링 & 실시간 모니터링 {#8-데이터-폴링}
+
+### 8.1 Use Case GUI 폴링 구조
+
+```mermaid
+graph TD
+    subgraph "🖥️ Use Case GUI 폴링 사이클"
+        CONNECT["CONNECT 버튼 클릭"] --> START_POLL["폴링 시작"]
+        START_POLL --> INTERVAL["⏱️ 매 1초마다 반복"]
+        
+        INTERVAL --> REFRESH[refresh 실행]
+        REFRESH --> STATUS["🌐 GET /{vmIp}/status"]
+        STATUS --> CHECK{connected?}
+        CHECK -->|No| SKIP[데이터 수집 건너뜀]
+        CHECK -->|Yes| SENSORS["🌐 GET /{vmIp}/sensors"]
+        SENSORS --> LOGS["🌐 GET /{vmIp}/logs"]
+        LOGS --> UPDATE["🖥️ GUI 갱신"]
+        UPDATE --> INTERVAL
+        
+        DISCONNECT["DISCONNECT 버튼 클릭"] --> STOP_POLL["폴링 중지"]
+    end
+    
+    subgraph "🖥️ GUI에 표시되는 내용"
+        STATUS -->|status 데이터| HEADER_STATUS["헤더: SYSTEM CONNECTED<br/>LINK SETTINGS: IP, PORT"]
+        SENSORS -->|센서 데이터| TELEMETRY["TELEMETRY FEED 테이블<br/>UAM1/altitude: 150<br/>UAM1/speed: 25"]
+        LOGS -->|로그 배열| CONSOLE["SYSTEM CONSOLE<br/>[UAM1] Taking off<br/>[UAM1] Ascending"]
+    end
+```
+
+### 8.2 데이터 흐름 상세
+
+```mermaid
+sequenceDiagram
+    participant Timer as ⏱️ 1초 타이머
+
+    box rgb(30, 60, 90) GUI
+        participant MissionGUI as 🖥️ Use Case GUI
+    end
+
+    box rgb(80, 40, 40) 백엔드
+        participant API as 🌐 Mission Gateway
+    end
+
+    loop 매 1초
+        Timer->>MissionGUI: refresh() 트리거
+        
+        MissionGUI->>API: GET /{vmIp}/status
+        API-->>MissionGUI: { connected: true, airsim_ip: "10.0.0.5", vehicles: { UAM1: { stage: 3 } } }
+        Note over MissionGUI: 🖥️ GUI: LINK SETTINGS 패널 갱신<br/>LIVE 태그 활성화
+
+        alt connected === true
+            MissionGUI->>API: GET /{vmIp}/sensors
+            API-->>MissionGUI: { UAM1: { altitude: 150.3, speed: 24.7, battery: 87 } }
+            Note over MissionGUI: 🖥️ GUI: TELEMETRY FEED 테이블 갱신<br/>"UAM1/altitude" → "150.3"<br/>"UAM1/speed" → "24.7"
+
+            MissionGUI->>API: GET /{vmIp}/logs
+            API-->>MissionGUI: [ { vehicle: "UAM1", message: "Cruising at 150m" } ]
+            Note over MissionGUI: 🖥️ GUI: SYSTEM CONSOLE 로그 갱신
+        end
+
+        Note over MissionGUI: 🖥️ GUI: 하단 푸터 시간 갱신
+    end
+```
+
+---
+
+## 9. 전체 ODT 실행 End-to-End 시퀀스
+
+아래는 **로그인부터 미션 완료까지의 전체 흐름**입니다:
+
+```mermaid
+sequenceDiagram
+    actor User as 👤 사용자
+
+    box rgb(30, 60, 90) GUI (사용자가 보는 화면)
+        participant GUI as 🖥️ GUI 화면
+    end
+
+    box rgb(80, 40, 40) 백엔드 서버
+        participant PlatformAPI as 🌐 Platform API
+        participant MissionGW as 🌐 Mission Gateway
+        participant AirSim as 🌐 AirSim 시뮬레이터
+    end
+
+    rect rgb(25, 40, 60)
+        Note over User,AirSim: Phase 1: 인증 & 부트스트랩
+        User->>GUI: 🖥️ 로그인 GUI에서 로그인
+        GUI->>PlatformAPI: POST /api/auth/login
+        PlatformAPI-->>GUI: 토큰 + productIdList
+        GUI->>GUI: 🖥️ 홈 GUI로 전환
+        GUI->>PlatformAPI: GET /api/component/configs
+        PlatformAPI-->>GUI: 서비스 설정 목록 (vmIp 포함)
+        Note over GUI: ⚙️ missionStore / vertiportStore / compConfigStore에 분배
+    end
+
+    rect rgb(35, 50, 35)
+        Note over User,AirSim: Phase 2: Configuration
+        User->>GUI: 🖥️ Configuration GUI에서 환경/기체/미션/AI 설정
+        User->>GUI: "RUN ODT SYSTEM" 버튼 클릭
+        Note over GUI: ⚙️ isConfigurationReady = true<br/>🖥️ 사이드바 메뉴 활성화
+    end
+
+    rect rgb(55, 35, 35)
+        Note over User,AirSim: Phase 3: 미션 실행 (Simple 모드)
+        User->>GUI: 🖥️ 사이드바에서 "Use Case" 클릭
+        Note over GUI: 🖥️ Use Case GUI 표시
+        
+        User->>GUI: CONNECT 버튼 클릭
+        GUI->>MissionGW: POST /{vmIp}/connect
+        MissionGW->>AirSim: AirSim 연결
+        AirSim-->>GUI: 연결 성공
+        Note over GUI: 🖥️ LIVE 태그 활성화 + 1초 폴링 시작
+
+        User->>GUI: START (S0) 버튼 클릭
+        GUI->>MissionGW: POST /{vmIp}/start
+        MissionGW->>AirSim: 미션 시작
+
+        loop 매 1초
+            GUI->>MissionGW: GET status + sensors + logs
+            MissionGW-->>GUI: 실시간 데이터
+            Note over GUI: 🖥️ Telemetry 테이블 + Console 로그 갱신
+        end
+
+        User->>GUI: PAUSE / RESUME 버튼 (선택적)
+        GUI->>MissionGW: POST /{vmIp}/pause or resume
+    end
+
+    rect rgb(35, 35, 55)
+        Note over User,AirSim: Phase 4: 시각화 서비스 (병행 가능)
+        User->>GUI: 🖥️ 사이드바에서 "Operation Environment" 클릭
+        GUI->>PlatformAPI: POST /api/comp/conn
+        PlatformAPI-->>GUI: VNC 서비스 URL
+        Note over GUI: 🖥️ Operation Environment GUI에<br/>iframe으로 AirSim 화면 스트리밍
+    end
+
+    rect rgb(55, 45, 25)
+        Note over User,AirSim: 종료
+        User->>GUI: 🖥️ DISCONNECT 버튼 클릭
+        GUI->>MissionGW: POST /{vmIp}/disconnect
+        Note over GUI: 🖥️ 폴링 중지, GUI 초기화
+    end
+```
+
+---
+
+## 10. GUI ↔ 코드 파일 매핑
+
+| 🖥️ GUI 화면 이름 | 코드 파일 (.vue) | 역할 |
+|------------------|-----------------|------|
+| **로그인 GUI** | [LoginView.vue](file:///c:/Users/HJW/Documents/Dev/ODT/DTAMPlatform/kada-platform-web-frontend-main/src/views/LoginView.vue) | 로그인 폼 + 인증 |
+| **홈 GUI (레이아웃)** | [HomeView.vue](file:///c:/Users/HJW/Documents/Dev/ODT/DTAMPlatform/kada-platform-web-frontend-main/src/views/HomeView.vue) | 사이드바 + 헤더 + 탭 + 푸터 레이아웃 |
+| **사이드바 GUI** | [Sidebar.vue](file:///c:/Users/HJW/Documents/Dev/ODT/DTAMPlatform/kada-platform-web-frontend-main/src/layout/Sidebar.vue) | 좌측 네비게이션 메뉴 |
+| **Configuration GUI** | [InitialConfiguration.vue](file:///c:/Users/HJW/Documents/Dev/ODT/DTAMPlatform/kada-platform-web-frontend-main/src/components/dtam/InitialConfiguration.vue) | 4개 파라미터 설정 + RUN |
+| **Use Case GUI** | [MissionUpload.vue](file:///c:/Users/HJW/Documents/Dev/ODT/DTAMPlatform/kada-platform-web-frontend-main/src/components/dtam/MissionUpload.vue) | AirSim 연결 / 제어 / 모니터링 |
+| **Operation Environment GUI** | [OperationDigital.vue](file:///c:/Users/HJW/Documents/Dev/ODT/DTAMPlatform/kada-platform-web-frontend-main/src/components/dtam/OperationDigital.vue) | VNC/UE iframe 시각화 |
+| **Situation Monitoring GUI** | [OperationDigital.vue](file:///c:/Users/HJW/Documents/Dev/ODT/DTAMPlatform/kada-platform-web-frontend-main/src/components/dtam/OperationDigital.vue) | 상황 모니터링 iframe (동일 코드) |
+| **Customize GUI** | [VertiportWrapper.vue](file:///c:/Users/HJW/Documents/Dev/ODT/DTAMPlatform/kada-platform-web-frontend-main/src/components/dtam/VertiportWrapper.vue) | 버티포트 설정 iframe |
+| **토스트 알림** | [AppMessage.vue](file:///c:/Users/HJW/Documents/Dev/ODT/DTAMPlatform/kada-platform-web-frontend-main/src/components/common/AppMessage.vue) | 상단 알림 메시지 |
+| **탭 바** | [TabView.vue](file:///c:/Users/HJW/Documents/Dev/ODT/DTAMPlatform/kada-platform-web-frontend-main/src/components/TabView.vue) | 탭 기반 페이지 관리 |
+
+| ⚙️ 내부 로직 | 코드 파일 (.js) | 역할 |
+|-------------|----------------|------|
+| **ODT 상태 관리** | [odtStore.js](file:///c:/Users/HJW/Documents/Dev/ODT/DTAMPlatform/kada-platform-web-frontend-main/src/stores/odtStore.js) | Configuration ready 상태 |
+| **미션 VM 관리** | [missionStore.js](file:///c:/Users/HJW/Documents/Dev/ODT/DTAMPlatform/kada-platform-web-frontend-main/src/stores/missionStore.js) | VM IP 관리 |
+| **미션 API** | [mission.js](file:///c:/Users/HJW/Documents/Dev/ODT/DTAMPlatform/kada-platform-web-frontend-main/src/api/mission.js) | 9개 미션 API 함수 |
+| **서비스 연결** | [componentService.js](file:///c:/Users/HJW/Documents/Dev/ODT/DTAMPlatform/kada-platform-web-frontend-main/src/services/componentService.js) | iframe URL 생성 |
+| **미션 모드 가드** | [odtMissionGuard.js](file:///c:/Users/HJW/Documents/Dev/ODT/DTAMPlatform/kada-platform-web-frontend-main/src/router/guards/odtMissionGuard.js) | 라우트 보호 |
+| **사이드바 메뉴 로직** | [useSidebarMenus.js](file:///c:/Users/HJW/Documents/Dev/ODT/DTAMPlatform/kada-platform-web-frontend-main/src/composables/useSidebarMenus.js) | 동적 메뉴 disabled 계산 |
+| **메뉴 데이터** | [menuConfig.js](file:///c:/Users/HJW/Documents/Dev/ODT/DTAMPlatform/kada-platform-web-frontend-main/src/data/menuConfig.js) | ODT 메뉴 트리 정의 |

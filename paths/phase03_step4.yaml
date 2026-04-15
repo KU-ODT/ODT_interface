@@ -1,0 +1,62 @@
+# Phase 3 / Step 4: State Init
+# From: MissionManagement.MissionPlanning → To: SimulationStateServer.ObjectStateControl
+post:
+  tags: [Phase 3 Mission Planning]
+  summary: "P3.4 State Initialization"
+  description: |
+    시뮬레이션 엔티티들의 초기 상태를 설정합니다.
+    - **From**: MissionManagement.MissionPlanning
+    - **To**: SimulationStateServer.ObjectStateControl
+    - **Type**: action
+  operationId: initializeState
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required: [sessionId, initialStates]
+          properties:
+            sessionId:
+              type: string
+              format: uuid
+            initialStates:
+              type: array
+              items:
+                type: object
+                required: [entityId, position, status]
+                properties:
+                  entityId:
+                    type: string
+                    example: "UAV-001"
+                  position:
+                    type: object
+                    properties:
+                      lat: { type: number, example: 37.5665 }
+                      lon: { type: number, example: 126.9780 }
+                      alt: { type: number, example: 0 }
+                  velocity:
+                    type: object
+                    properties:
+                      vx: { type: number, example: 0 }
+                      vy: { type: number, example: 0 }
+                      vz: { type: number, example: 0 }
+                  status:
+                    type: string
+                    enum: [idle, ready, standby]
+                    example: "ready"
+  responses:
+    '200':
+      description: 상태 초기화 완료
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                enum: [initialized]
+                example: "initialized"
+              entityCount:
+                type: integer
+                example: 3
